@@ -1,0 +1,36 @@
+{
+  "orders": [
+    {
+      "phone": "0388347480",
+      "walletType": "momo",
+      "originalUrl": "https://vt.tiktok.com/ZS9RjfDpG9coP-ui3lm/",
+      "affUrl": "https://go.isclix.com/deep_link/6937835989495136295/6648523843406889655?url=https%3A%2F%2Fwww.tiktok.com%2Ft%2FZSuQWwv6U%2F",
+      "affShortUrl": "https://shorten.asia/vYCDHWjW",
+      "productName": "CÓ XÚC XÍCH TRONG LY - Thùng 24 ly mì Yes Mom Tôm Chua Cay 79.2gram/ly",
+      "productImage": "https://p16-oec-sg.ibyteimg.com/tos-alisg-i-aphluv4xwc-sg/e52fd5b19760447e80e49f0080ace67b~tplv-aphluv4xwc-resize-jpeg:800:800.jpeg?dr=15584&t=555f072d&ps=933b5bde&shp=2408c917&shcp=32ce9e9e&idc=my&from=604555543",
+      "productPrice": 209000,
+      "commissionAmount": 16720,
+      "commissionRate": 800,
+      "cashbackAmount": 13376,
+      "id": "3fae8820-1460-4499-98e2-4a6a8b58cf25",
+      "status": "pending",
+      "createdAt": "2026-03-17T14:58:40.694Z"
+    },
+    {
+      "phone": "0388347480",
+      "walletType": "momo",
+      "originalUrl": "https://vt.tiktok.com/ZS9Rj9A3AhoQM-OFEcT/",
+      "affUrl": "https://go.isclix.com/deep_link/6937835989495136295/6648523843406889655?url=https%3A%2F%2Fwww.tiktok.com%2Ft%2FZSuQv9DfE%2F",
+      "affShortUrl": "https://shorten.asia/H1A2dn9u",
+      "productName": "Kẽm ADA - Kẽm gluconate nguyên liệu nhập khẩu Pháp - Hỗ trợ tăng cường sức khoẻ",
+      "productImage": "https://p16-oec-sg.ibyteimg.com/tos-alisg-i-aphluv4xwc-sg/2841361a81d9452b83f8b93859530556~tplv-aphluv4xwc-resize-jpeg:800:800.jpeg?dr=15584&t=555f072d&ps=933b5bde&shp=2408c917&shcp=32ce9e9e&idc=my&from=604555543",
+      "productPrice": 138000,
+      "commissionAmount": 20700,
+      "commissionRate": 1500,
+      "cashbackAmount": 16560,
+      "id": "722ae3c8-3c2f-4ea4-a049-f50adf939611",
+      "status": "pending",
+      "createdAt": "2026-03-17T15:16:46.966Z"
+    }
+  ]
+}
