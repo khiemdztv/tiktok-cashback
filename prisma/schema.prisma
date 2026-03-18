@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Order {
+  id               String    @id @default(uuid())
+  phone            String
+  walletType       String
+  bankAccount      String?
+  originalUrl      String
+  affUrl           String
+  affShortUrl      String
+  productName      String
+  productImage     String
+  productPrice     Int
+  commissionAmount Int
+  commissionRate   Float
+  cashbackAmount   Int
+  status           String    @default("pending")
+  createdAt        DateTime  @default(now())
+  paidAt           DateTime?
+}
