@@ -459,7 +459,7 @@ export default function Home() {
                 <span className="text-2xl">🏪</span>
                 <div>
                   <p className="font-semibold text-gray-800 text-sm">Người bán trả hoa hồng</p>
-                  <p className="text-xs text-gray-600 mt-1">Khi bạn mua sản phẩm qua link affiliate, người bán trả một khoản hoa hồng (lên đến 6%) cho người giới thiệu.</p>
+                  <p className="text-xs text-gray-600 mt-1">Khi bạn mua sản phẩm qua link affiliate, người bán trả một khoản hoa hồng (lên đến 15%) cho người giới thiệu.</p>
                 </div>
               </div>
 
