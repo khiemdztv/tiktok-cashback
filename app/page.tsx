@@ -55,12 +55,7 @@ export default function Home() {
   const [stats, setStats] = useState({ pending: 0, paid: 0 });
 
   useEffect(() => {
-    const saved = localStorage.getItem("cashback_phone");
-    if (saved) {
-      setPhone(saved);
-      setCheckPhone(saved);
-      loadStats(saved);
-    }
+    // Không tự động lấy số điện thoại từ localStorage nữa
   }, []);
 
   async function loadStats(p: string) {
@@ -98,7 +93,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) return setError(data.error || "Có lỗi xảy ra");
       setResult(data);
-      localStorage.setItem("cashback_phone", phone.trim());
+      // Không lưu số điện thoại vào localStorage nữa
       loadStats(phone.trim());
     } catch { setError("Không thể kết nối server"); }
     finally { setLoading(false); }
@@ -113,7 +108,7 @@ export default function Home() {
       const data = await res.json();
       setUserOrders(data);
       setCheckedPhone(checkPhone.trim());
-      localStorage.setItem("cashback_phone", checkPhone.trim());
+      // Không lưu số điện thoại vào localStorage nữa
       loadStats(checkPhone.trim());
     } catch {}
     finally { setCheckLoading(false); }
