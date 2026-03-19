@@ -1,68 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
-import { addOrder } from "@/lib/db";
-
-export async function POST(req: NextRequest) {
-  try {
-    const { productUrl, phone, walletType, bankAccount } = await req.json();
-
-    if (!productUrl || !phone || !walletType)
-      return NextResponse.json({ error: "Thiếu thông tin bắt buộc" }, { status: 400 });
-
-    const apiKey = process.env.ACCESSTRADE_API_KEY;
-    const bodyArgs: any = { product_url: productUrl };
-    if (phone) bodyArgs.aff_sub1 = phone;
-
-    const res = await fetch("https://api.accesstrade.vn/v2/tiktokshop_product_feeds/create_link", {
-      method: "POST",
-      headers: {
-        authorization: `Token ${apiKey}`,
-        "content-type": "application/json",
-        origin: "https://pub2.accesstrade.vn",
-        referer: "https://pub2.accesstrade.vn/",
-      },
-      body: JSON.stringify(bodyArgs),
-    });
-
-    const json = await res.json();
-    console.log("AT status:", res.status);
-    console.log("AT response:", JSON.stringify(json));
-
-    if (!json.status || !json.data)
-      return NextResponse.json({ error: "Không thể tạo link. Vui lòng kiểm tra lại link sản phẩm." }, { status: 400 });
-
-    const d = json.data;
-    const rawCommissionAmount = parseInt(d.product_commission?.amount || "0");
-    const commissionAmount = Math.floor(rawCommissionAmount * 0.648);
-    const cashbackAmount = Math.floor(commissionAmount * 0.8);
-
-    const order = await addOrder({
-      phone,
-      walletType,
-      bankAccount,
-      originalUrl: productUrl,
-      affUrl: d.aff_url,
-      affShortUrl: d.aff_short_url,
-      productName: d.product_name || "Sản phẩm TikTok Shop",
-      productImage: d.product_image || "",
-      productPrice: parseInt(d.product_price?.minimum_amount || "0"),
-      commissionAmount,
-      commissionRate: d.product_commission?.rate || 0,
-      cashbackAmount,
-    });
-
-    return NextResponse.json({
-      affUrl: d.aff_url,
-      affShortUrl: d.aff_short_url,
-      productName: d.product_name,
-      productImage: d.product_image,
-      productPrice: parseInt(d.product_price?.minimum_amount || "0"),
-      commissionAmount,
-      commissionRate: d.product_commission?.rate || 0,
-      cashbackAmount,
-      orderId: order.id,
-    });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 });
+{
+  "name": "tiktok-cashback",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0",
+    "next": "14.2.3",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
   }
 }
