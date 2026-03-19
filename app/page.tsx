@@ -53,10 +53,22 @@ export default function Home() {
   const [checkLoading, setCheckLoading] = useState(false);
   const [checkedPhone, setCheckedPhone] = useState("");
   const [stats, setStats] = useState({ pending: 0, paid: 0 });
+  const [globalStats, setGlobalStats] = useState({ totalLinks: 0, totalCashback: 0 });
 
   useEffect(() => {
     // Không tự động lấy số điện thoại từ localStorage nữa
+    fetchGlobalStats();
   }, []);
+
+  async function fetchGlobalStats() {
+    try {
+      const res = await fetch("/api/stats");
+      const data = await res.json();
+      if (data.success) {
+        setGlobalStats({ totalLinks: data.totalLinks, totalCashback: data.totalCashback });
+      }
+    } catch {}
+  }
 
   async function loadStats(p: string) {
     try {
@@ -203,6 +215,25 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Global Stats */}
+      {globalStats.totalLinks > 0 && (
+        <div className="flex justify-center gap-8 mt-5 mb-2 py-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-100/80 w-full max-w-xl mx-auto shadow-sm px-4">
+          <div className="text-center px-4">
+            <p className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-teal-500">
+              {globalStats.totalLinks.toLocaleString()}
+            </p>
+            <p className="text-xs md:text-sm text-gray-500 font-semibold mt-1">Link Đã Tạo</p>
+          </div>
+          <div className="w-px bg-gray-200"></div>
+          <div className="text-center px-4">
+            <p className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-green-600">
+              {formatVND(globalStats.totalCashback)}
+            </p>
+            <p className="text-xs md:text-sm text-gray-500 font-semibold mt-1">Tiền Đã Hoàn</p>
+          </div>
+        </div>
+      )}
 
       {/* Info bar - "Tiền hoàn đến từ đâu?" */}
       <div className="flex justify-center mt-3 px-4">
