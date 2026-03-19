@@ -59,21 +59,36 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    console.log("AccessTrade Postback POST [Raw Body]:", JSON.stringify(body));
+    // 1. Lấy parameters từ URL (ưu tiên)
+    const searchParams = req.nextUrl.searchParams;
+    let phone = searchParams.get("aff_sub1"); 
+    let statusStr = searchParams.get("status"); 
+    let payoutStr = searchParams.get("payout") || searchParams.get("commission");
 
-    const phone = body.aff_sub1;
-    // status: 0 = pending, 1 = approved, 2 = rejected
-    const statusStr = body.status?.toString();
-    const payoutStr = body.payout?.toString() || body.commission?.toString();
+    // 2. Nếu không có ở URL, thử parse body (JSON)
+    if (!phone) {
+      try {
+        const bodyText = await req.text(); // Đọc text trước để tránh crash nếu empty
+        if (bodyText) {
+          const body = JSON.parse(bodyText);
+          console.log("AccessTrade Postback POST [Raw Body]:", bodyText);
+          phone = phone || body.aff_sub1;
+          statusStr = statusStr || body.status?.toString();
+          payoutStr = payoutStr || body.payout?.toString() || body.commission?.toString();
+        }
+      } catch (e) {
+        console.log("AT Webhook Body Parse Error but continuing: ", e);
+      }
+    } else {
+      console.log("AccessTrade Postback POST [URL Params]:", Object.fromEntries(searchParams.entries()));
+    }
 
     if (!phone) {
-      return NextResponse.json({ success: false, msg: "Missing aff_sub1 in body" });
+      return NextResponse.json({ success: false, msg: "Missing aff_sub1" });
     }
 
     const payout = payoutStr ? parseFloat(payoutStr) : undefined;
 
-    // We look for ANY order created by this phone in the last 30 days that hasn't been definitively paid/rejected
     const pendingOrder = await prisma.order.findFirst({
       where: { 
         phone, 
