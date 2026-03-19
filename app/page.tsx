@@ -21,6 +21,14 @@ interface UserOrder {
   affShortUrl: string;
 }
 
+const BANKS = [
+  "Vietcombank", "Techcombank", "MB Bank", "ACB", "BIDV", "Agribank",
+  "TPBank", "VPBank", "Sacombank", "VietinBank", "SHB", "HDBank",
+  "OCB", "MSB", "SeABank", "LienVietPostBank", "VIB", "Eximbank",
+  "Nam A Bank", "BaoViet Bank", "PVComBank", "Dong A Bank", "ABBank",
+  "Bac A Bank", "KienLong Bank", "NCB", "PG Bank", "Viet A Bank"
+];
+
 function formatVND(amount: number) {
   return amount.toLocaleString("vi-VN") + " vnđ";
 }
@@ -28,11 +36,15 @@ function formatVND(amount: number) {
 export default function Home() {
   const [showCreate, setShowCreate] = useState(false);
   const [showCheck, setShowCheck] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [showCashbackInfo, setShowCashbackInfo] = useState(false);
   const [productUrl, setProductUrl] = useState("");
   const [phone, setPhone] = useState("");
   const [walletType, setWalletType] = useState("momo");
   const [useBankAccount, setUseBankAccount] = useState(false);
+  const [bankName, setBankName] = useState("");
   const [bankAccount, setBankAccount] = useState("");
+  const [bankHolder, setBankHolder] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OrderResult | null>(null);
   const [error, setError] = useState("");
@@ -64,6 +76,9 @@ export default function Home() {
   async function handleGenerate() {
     if (!productUrl.trim()) return setError("Vui lòng nhập link sản phẩm");
     if (!phone.trim()) return setError("Vui lòng nhập số điện thoại");
+    if (useBankAccount && !bankName) return setError("Vui lòng chọn ngân hàng");
+    if (useBankAccount && !bankAccount.trim()) return setError("Vui lòng nhập số tài khoản");
+    if (useBankAccount && !bankHolder.trim()) return setError("Vui lòng nhập tên chủ tài khoản");
     setLoading(true);
     setError("");
     setResult(null);
@@ -71,7 +86,14 @@ export default function Home() {
       const res = await fetch("/api/generate-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productUrl: productUrl.trim(), phone: phone.trim(), walletType, bankAccount: useBankAccount ? bankAccount : undefined }),
+        body: JSON.stringify({
+          productUrl: productUrl.trim(),
+          phone: phone.trim(),
+          walletType,
+          bankAccount: useBankAccount ? bankAccount : undefined,
+          bankName: useBankAccount ? bankName : undefined,
+          bankHolder: useBankAccount ? bankHolder : undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) return setError(data.error || "Có lỗi xảy ra");
@@ -101,39 +123,102 @@ export default function Home() {
   function closeCheck() { setShowCheck(false); setUserOrders([]); setCheckedPhone(""); }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-white via-gray-50/50 to-white flex flex-col relative">
+
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-3 border-b border-gray-100 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-white text-sm font-bold">H</span>
+      <header className="flex items-center justify-between px-6 py-3 border-b border-gray-100 shadow-sm bg-white/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+            <span className="text-white text-lg">💰</span>
           </div>
-          <span className="font-semibold text-gray-800">Hoàn tiền tiếp thị liên kết</span>
+          <span className="font-bold text-gray-800 text-base tracking-tight">cashback.id.vn</span>
         </div>
-        <nav className="flex gap-6 text-sm text-gray-600">
-          <a href="/" className="hover:text-primary">Trang chủ</a>
-          <a href="#" className="hover:text-primary">Hướng dẫn</a>
-        </nav>
+        <div className="relative">
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-primary font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Hướng dẫn
+          </button>
+          {showGuide && (
+            <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 p-5 z-50 slide-in">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-gray-800">Hướng dẫn sử dụng</h3>
+                <button onClick={() => setShowGuide(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              </div>
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">1</div>
+                  <div>
+                    <p className="font-semibold text-gray-700 text-sm">Copy link sản phẩm</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Mở TikTok Shop, copy link sản phẩm bạn muốn mua</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">2</div>
+                  <div>
+                    <p className="font-semibold text-gray-700 text-sm">Tạo link hoàn tiền</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Dán link vào, nhập SĐT → nhận link affiliate</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-bold shrink-0">3</div>
+                  <div>
+                    <p className="font-semibold text-gray-700 text-sm">Mua & nhận hoàn tiền</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Mua hàng qua link đó → hoàn tiền sau 15 ngày</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                <p className="text-xs text-amber-700">💡 <strong>Mẹo:</strong> Luôn mua qua link được tạo để đảm bảo nhận hoàn tiền nhé!</p>
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Banner */}
-      <div className="flex justify-center mt-4 px-4">
-        <div className="w-full max-w-2xl h-36 bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 rounded-xl flex items-center justify-center relative overflow-hidden">
-          <div className="text-center text-white z-10">
-            <p className="text-xs opacity-80 mb-1">TĂNG MỨC HOA HỒNG CƠ BẢN</p>
-            <p className="text-3xl font-black text-yellow-300">LÊN ĐẾN 6%</p>
-            <p className="text-xs opacity-80 mt-1">CHO ĐƠN HÀNG ĐẾN TỪ MẠNG XÃ HỘI</p>
+      <div className="flex justify-center mt-5 px-4">
+        <div className="w-full max-w-2xl rounded-2xl overflow-hidden relative">
+          <div className="bg-gradient-to-r from-violet-900 via-indigo-800 to-emerald-700 p-6 relative overflow-hidden">
+            {/* Decorative elements */}
+            <div className="absolute top-3 right-8 text-2xl sparkle" style={{ animationDelay: '0s' }}>✨</div>
+            <div className="absolute top-8 right-24 text-lg sparkle" style={{ animationDelay: '0.5s' }}>💰</div>
+            <div className="absolute bottom-4 left-8 text-xl sparkle" style={{ animationDelay: '1s' }}>🪙</div>
+            <div className="absolute bottom-3 right-16 text-sm sparkle" style={{ animationDelay: '1.5s' }}>⭐</div>
+
+            <div className="text-center z-10 relative">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 mb-3">
+                <span className="w-2 h-2 bg-green-400 rounded-full pulse-glow"></span>
+                <span className="text-xs text-white/90 font-medium">Đang hoạt động • TikTok Shop</span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-white mb-2">
+                MUA HÀNG ONLINE
+              </h2>
+              <p className="text-xl md:text-2xl font-black text-yellow-300 float-anim">
+                NHẬN HOÀN TIỀN MỖI ĐƠN
+              </p>
+              <p className="text-sm text-white/70 mt-3 font-medium">
+                TikTok Shop 🛒 • Shopee <span className="inline-flex items-center bg-orange-500/80 text-white text-xs px-2 py-0.5 rounded-full ml-1 font-semibold">Sắp ra mắt</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Info bar */}
+      {/* Info bar - "Tiền hoàn đến từ đâu?" */}
       <div className="flex justify-center mt-3 px-4">
-        <div className="flex items-center gap-1 text-sm text-gray-500 bg-gray-50 rounded-full px-4 py-1.5 border border-gray-200">
-          <span className="text-primary font-medium">%</span>
+        <button
+          onClick={() => setShowCashbackInfo(true)}
+          className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-full px-5 py-2 border border-gray-200 transition-colors cursor-pointer"
+        >
+          <span className="text-primary font-bold text-base">%</span>
           <span>Tiền hoàn đến từ đâu?</span>
-          <a href="#" className="text-primary font-medium ml-1">Tìm hiểu thêm →</a>
-        </div>
+          <span className="text-primary font-semibold">Tìm hiểu thêm →</span>
+        </button>
       </div>
 
       {/* Stats */}
@@ -145,24 +230,66 @@ export default function Home() {
       {/* Buttons */}
       <div className="flex flex-col items-center gap-3 mt-6">
         <button onClick={() => setShowCreate(true)}
-          className="bg-primary hover:bg-teal-700 text-white font-semibold px-12 py-3 rounded-lg text-base transition-colors">
-          Tạo Link
+          className="bg-gradient-to-r from-primary to-teal-600 hover:from-teal-700 hover:to-teal-800 text-white font-semibold px-14 py-3.5 rounded-xl text-base transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transform hover:-translate-y-0.5">
+          Tạo Link Hoàn Tiền
         </button>
         <button onClick={() => setShowCheck(true)}
-          className="bg-secondary hover:bg-green-900 text-white font-semibold px-10 py-3 rounded-lg text-base transition-colors">
+          className="bg-gradient-to-r from-secondary to-green-700 hover:from-green-800 hover:to-green-900 text-white font-semibold px-12 py-3.5 rounded-xl text-base transition-all shadow-lg shadow-secondary/20 hover:shadow-xl hover:shadow-secondary/30 transform hover:-translate-y-0.5">
           Tra cứu đơn
         </button>
       </div>
 
+      {/* Floating social icons (right side) */}
+      <div className="fixed right-4 bottom-24 flex flex-col gap-3 z-30">
+        <a
+          href="https://facebook.com/DoGiaKhiemOfficial"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="social-float w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg"
+          title="Liên hệ Facebook"
+        >
+          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+        </a>
+        <a
+          href="https://zalo.me/0388347480"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="social-float w-12 h-12 rounded-full overflow-hidden shadow-lg"
+          title="Liên hệ Zalo"
+        >
+          <img src="https://page.widget.zalo.me/static/images/2.0/Logo.png" alt="Zalo" className="w-full h-full object-cover" />
+        </a>
+      </div>
+
       {/* Footer */}
-      <footer className="mt-auto py-4 text-center text-xs text-gray-400 border-t border-gray-100">
-        © 2026 TikTok Cashback
+      <footer className="mt-auto py-4 px-6 border-t border-gray-100 bg-gray-50/50">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 max-w-4xl mx-auto">
+          <p className="text-xs text-gray-400">
+            © 2026 cashback.id.vn - Powered by <a href="https://facebook.com/DoGiaKhiemOfficial" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">khiemdztv</a>
+          </p>
+          <div className="flex items-center gap-4">
+            <a href="https://facebook.com/DoGiaKhiemOfficial" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-blue-600 transition-colors">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Facebook
+            </a>
+            <a href="https://zalo.me/0388347480" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-blue-500 transition-colors">
+              <img src="https://page.widget.zalo.me/static/images/2.0/Logo.png" alt="Zalo" className="w-4 h-4 rounded-sm object-cover" />
+              Zalo
+            </a>
+          </div>
+        </div>
       </footer>
 
       {/* Modal: Tạo link */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative slide-in">
             <button onClick={closeCreate} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
 
             {!result ? (
@@ -199,13 +326,38 @@ export default function Home() {
                     Không có ví điện tử? Nhập tài khoản ngân hàng:
                   </label>
                   {useBankAccount && (
-                    <input value={bankAccount} onChange={e => setBankAccount(e.target.value)}
-                      placeholder="Số tài khoản ngân hàng"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+                    <div className="space-y-3 bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div>
+                        <label className="text-sm text-gray-600 block mb-1.5 font-medium">Chọn ngân hàng</label>
+                        <select
+                          value={bankName}
+                          onChange={e => setBankName(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 bg-white"
+                        >
+                          <option value="">-- Chọn ngân hàng --</option>
+                          {BANKS.map(bank => (
+                            <option key={bank} value={bank}>{bank}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-600 block mb-1.5 font-medium">Số tài khoản</label>
+                        <input value={bankAccount} onChange={e => setBankAccount(e.target.value)}
+                          placeholder="Nhập số tài khoản ngân hàng"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-600 block mb-1.5 font-medium">Tên chủ tài khoản</label>
+                        <input value={bankHolder} onChange={e => setBankHolder(e.target.value)}
+                          placeholder="VD: NGUYEN VAN A"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+                        />
+                      </div>
+                    </div>
                   )}
                   {error && <p className="text-red-500 text-sm">{error}</p>}
                   <button onClick={handleGenerate} disabled={loading}
-                    className="w-full bg-primary hover:bg-teal-700 disabled:opacity-60 text-white font-semibold py-3 rounded-lg transition-colors">
+                    className="w-full bg-gradient-to-r from-primary to-teal-600 hover:from-teal-700 hover:to-teal-800 disabled:opacity-60 text-white font-semibold py-3 rounded-lg transition-all shadow-md">
                     {loading ? "Đang tạo link..." : "Lấy link"}
                   </button>
                 </div>
@@ -237,10 +389,10 @@ export default function Home() {
                   <p className="text-sm font-mono text-primary break-all">{result.affShortUrl}</p>
                 </div>
                 <button onClick={() => { navigator.clipboard.writeText(result.affShortUrl); }}
-                  className="w-full bg-primary hover:bg-teal-700 text-white font-semibold py-3 rounded-lg mb-2 transition-colors">
+                  className="w-full bg-gradient-to-r from-primary to-teal-600 hover:from-teal-700 hover:to-teal-800 text-white font-semibold py-3 rounded-lg mb-2 transition-all shadow-md">
                   📋 Copy link
                 </button>
-                <p className="text-xs text-center text-gray-400">Bấm vào link này để mua → nhận hoàn tiền sau 45–60 ngày</p>
+                <p className="text-xs text-center text-gray-400">Bấm vào link này để mua → nhận hoàn tiền sau 15 ngày</p>
               </>
             )}
           </div>
@@ -249,8 +401,8 @@ export default function Home() {
 
       {/* Modal: Tra cứu đơn */}
       {showCheck && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative max-h-[80vh] overflow-y-auto slide-in">
             <button onClick={closeCheck} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
             <h2 className="text-lg font-bold text-gray-800 mb-5">Kiểm tra đơn hoàn</h2>
             <div className="flex gap-2 mb-4">
@@ -295,6 +447,58 @@ export default function Home() {
                 )}
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Tiền hoàn đến từ đâu? */}
+      {showCashbackInfo && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative slide-in">
+            <button onClick={() => setShowCashbackInfo(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
+            <h2 className="text-lg font-bold text-gray-800 mb-2">💡 Tiền hoàn đến từ đâu?</h2>
+            <p className="text-sm text-gray-500 mb-5">Minh bạch 100% - Không phí ẩn</p>
+
+            <div className="space-y-4">
+              <div className="flex gap-3 items-start bg-blue-50 rounded-xl p-4">
+                <span className="text-2xl">🏪</span>
+                <div>
+                  <p className="font-semibold text-gray-800 text-sm">Người bán trả hoa hồng</p>
+                  <p className="text-xs text-gray-600 mt-1">Khi bạn mua sản phẩm qua link affiliate, người bán trả một khoản hoa hồng (lên đến 6%) cho người giới thiệu.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 items-start bg-emerald-50 rounded-xl p-4">
+                <span className="text-2xl">🤝</span>
+                <div>
+                  <p className="font-semibold text-gray-800 text-sm">cashback.id.vn chia sẻ lại cho bạn</p>
+                  <p className="text-xs text-gray-600 mt-1">Chúng tôi nhận hoa hồng từ người bán và <strong>hoàn lại 80%</strong> cho bạn. Chúng tôi chỉ giữ 20% để duy trì hệ thống.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 items-start bg-amber-50 rounded-xl p-4">
+                <span className="text-2xl">💰</span>
+                <div>
+                  <p className="font-semibold text-gray-800 text-sm">Bạn nhận tiền hoàn</p>
+                  <p className="text-xs text-gray-600 mt-1">Sau khi đơn hàng hoàn tất (15 ngày), tiền sẽ được chuyển về ví điện tử hoặc tài khoản ngân hàng của bạn.</p>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                <p className="text-sm font-semibold text-gray-700 mb-2">📊 Ví dụ thực tế:</p>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <p>• Sản phẩm: <strong>500.000đ</strong></p>
+                  <p>• Hoa hồng người bán trả (6%): <strong>30.000đ</strong></p>
+                  <p>• Bạn nhận hoàn (80%): <strong className="text-primary text-sm">24.000đ</strong></p>
+                </div>
+              </div>
+
+              <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
+                <p className="text-xs text-orange-700">
+                  🚀 <strong>Sắp ra mắt:</strong> Hoàn tiền cho đơn hàng <strong>Shopee</strong> — mua sắm nhiều nền tảng, hoàn tiền nhiều hơn!
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

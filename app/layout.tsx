@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Hoàn tiền TikTok Shop",
-  description: "Hoàn tiền tiếp thị liên kết TikTok Shop",
+  title: "cashback.id.vn - Hoàn tiền mua sắm online",
+  description: "Hoàn tiền lên đến 6% khi mua sắm trên TikTok Shop & Shopee. Minh bạch, nhanh chóng, dễ sử dụng.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
