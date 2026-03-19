@@ -24,13 +24,13 @@ export async function POST(req: NextRequest) {
     });
 
     const json = await res.json();
+    console.log("AT status:", res.status);
+    console.log("AT response:", JSON.stringify(json));
 
     if (!json.status || !json.data)
       return NextResponse.json({ error: "Không thể tạo link. Vui lòng kiểm tra lại link sản phẩm." }, { status: 400 });
 
     const d = json.data;
-    // Tỉ lệ chia sẻ thực tế của AT (theo ảnh của bạn: lấy 12,745 / 19,665 ~ 64.8%)
-    // Bạn chỉ nhận được khoản này, nên mình tính estimate = 65% để khách không bị hụt hẫng
     const rawCommissionAmount = parseInt(d.product_commission?.amount || "0");
     const commissionAmount = Math.floor(rawCommissionAmount * 0.648);
     const cashbackAmount = Math.floor(commissionAmount * 0.8);
