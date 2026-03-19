@@ -422,8 +422,13 @@ export default function Home() {
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-primary font-bold">{formatVND(order.cashbackAmount)}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            order.status === "paid" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"}`}>
-                            {order.status === "paid" ? "✓ Đã hoàn" : "⏳ Chờ xác nhận"}
+                            order.status === "paid" ? "bg-green-100 text-green-700" : 
+                            order.status === "pending" ? "bg-orange-100 text-orange-600" : 
+                            "bg-gray-100 text-gray-600"
+                          }`}>
+                            {order.status === "paid" ? "✓ Đã duyệt" : 
+                             order.status === "pending" ? "⏳ Chờ duyệt" : 
+                             "🔗 Chưa nhấp/mua"}
                           </span>
                         </div>
                         <p className="text-xs text-gray-400 mt-1">
@@ -432,8 +437,13 @@ export default function Home() {
                       </div>
                     ))}
                     <div className="bg-gray-50 rounded-xl p-3 mt-2">
+                      <p className="text-sm text-gray-600 mb-1">
+                        Đã duyệt (có thể rút): <span className="text-green-600 font-bold">
+                          {formatVND(userOrders.filter(o => o.status === "paid").reduce((s, o) => s + o.cashbackAmount, 0))}
+                        </span>
+                      </p>
                       <p className="text-sm text-gray-600">
-                        Tổng chờ hoàn: <span className="text-orange-500 font-bold">
+                        Đang chờ duyệt: <span className="text-orange-500 font-bold">
                           {formatVND(userOrders.filter(o => o.status === "pending").reduce((s, o) => s + o.cashbackAmount, 0))}
                         </span>
                       </p>

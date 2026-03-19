@@ -60,9 +60,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("AccessTrade Postback POST:", body);
+    console.log("AccessTrade Postback POST [Raw Body]:", JSON.stringify(body));
 
     const phone = body.aff_sub1;
+    // status: 0 = pending, 1 = approved, 2 = rejected
     const statusStr = body.status?.toString();
     const payoutStr = body.payout?.toString() || body.commission?.toString();
 
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest) {
 
     const payout = payoutStr ? parseFloat(payoutStr) : undefined;
 
+    // We look for ANY order created by this phone in the last 30 days that hasn't been definitively paid/rejected
     const pendingOrder = await prisma.order.findFirst({
       where: { 
         phone, 
@@ -81,12 +83,16 @@ export async function POST(req: NextRequest) {
     });
 
     if (!pendingOrder) {
+      console.log("AT Webhook: No matching order found for phone", phone);
       return NextResponse.json({ success: true, msg: "Không có đơn pending phù hợp" });
     }
 
     const updateData: any = {};
-    if (payout !== undefined && !isNaN(payout)) {
+    
+    // Always update commission/cashback amounts based on the ACTUAL payout from AccessTrade if it's > 0
+    if (payout !== undefined && !isNaN(payout) && payout > 0) {
       updateData.commissionAmount = Math.floor(payout);
+      // Giữ lại 80% hoa hồng thực tế cho người dùng
       updateData.cashbackAmount = Math.floor(payout * 0.8);
     }
 
@@ -96,7 +102,7 @@ export async function POST(req: NextRequest) {
     } else if (statusStr === "2") {
       updateData.status = "rejected";
     } else if (statusStr === "0") {
-      // Temporary conversion, convert from created
+      // AccessTrade temporary order / pending approval
       updateData.status = "pending";
     }
 
@@ -105,11 +111,14 @@ export async function POST(req: NextRequest) {
         where: { id: pendingOrder.id },
         data: updateData,
       });
+      console.log(`AT Webhook: Successfully updated order ${pendingOrder.id} to status ${updateData.status}`);
       return NextResponse.json({ success: true, updated: pendingOrder.id, data: updateData });
     }
 
-    return NextResponse.json({ success: true, msg: "Không có cập nhật nào" });
+    return NextResponse.json({ success: true, msg: "Không có cập nhật trạng thái mới" });
   } catch (e) {
-    return NextResponse.json({ success: false, error: "Invalid JSON" });
+    console.error("AT Webhook Error:", e);
+    return NextResponse.json({ success: false, error: "Lỗi xử lý webhook JSON" });
   }
 }
+
