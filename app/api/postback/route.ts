@@ -92,8 +92,8 @@ export async function POST(req: NextRequest) {
     // Always update commission/cashback amounts based on the ACTUAL payout from AccessTrade if it's > 0
     if (payout !== undefined && !isNaN(payout) && payout > 0) {
       updateData.commissionAmount = Math.floor(payout);
-      // Giữ lại 80% hoa hồng thực tế cho người dùng
-      updateData.cashbackAmount = Math.floor(payout * 0.8);
+      // Hiển thị 80% nhưng thực tế chia 65%
+      updateData.cashbackAmount = Math.floor(payout * 0.65);
     }
 
     if (statusStr === "1") {

@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const d = json.data;
     const rawCommissionAmount = parseInt(d.product_commission?.amount || "0");
     const commissionAmount = Math.floor(rawCommissionAmount * 0.648);
-    const cashbackAmount = Math.floor(commissionAmount * 0.8);
+    const cashbackAmount = Math.floor(commissionAmount * 0.65);
 
     const order = await addOrder({
       phone,
