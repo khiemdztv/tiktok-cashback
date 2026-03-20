@@ -230,7 +230,7 @@ export default function Home() {
             <p className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-green-600">
               {formatVND(globalStats.totalCashback)}
             </p>
-            <p className="text-xs md:text-sm text-gray-500 font-semibold mt-1">Tiền Đã Hoàn</p>
+            <p className="text-xs md:text-sm text-gray-500 font-semibold mt-1">Tiền Được Hoàn</p>
           </div>
         </div>
       )}
