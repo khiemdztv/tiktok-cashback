@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addOrder } from "@/lib/db";
 
+export const maxDuration = 30;
+
 export async function POST(req: NextRequest) {
   try {
     const { productUrl, phone, walletType, bankAccount } = await req.json();
@@ -12,16 +14,30 @@ export async function POST(req: NextRequest) {
     const bodyArgs: any = { product_url: productUrl };
     if (phone) bodyArgs.aff_sub1 = phone;
 
-    const res = await fetch("https://api.accesstrade.vn/v2/tiktokshop_product_feeds/create_link", {
-      method: "POST",
-      headers: {
-        authorization: `Token ${apiKey}`,
-        "content-type": "application/json",
-        origin: "https://pub2.accesstrade.vn",
-        referer: "https://pub2.accesstrade.vn/",
-      },
-      body: JSON.stringify(bodyArgs),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 seconds timeout
+
+    let res;
+    try {
+      res = await fetch("https://api.accesstrade.vn/v2/tiktokshop_product_feeds/create_link", {
+        method: "POST",
+        headers: {
+          authorization: `Token ${apiKey}`,
+          "content-type": "application/json",
+          origin: "https://pub2.accesstrade.vn",
+          referer: "https://pub2.accesstrade.vn/",
+        },
+        body: JSON.stringify(bodyArgs),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchError: any) {
+      if (fetchError.name === "AbortError") {
+        return NextResponse.json({ error: "AccessTrade phản hồi quá chậm, vui lòng thử lại." }, { status: 504 });
+      }
+      throw fetchError;
+    }
+
 
     const json = await res.json();
     console.log("AT status:", res.status);
