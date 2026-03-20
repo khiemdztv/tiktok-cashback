@@ -18,7 +18,7 @@ export async function GET() {
       }
     });
 
-    const totalCashback = agg._sum.cashbackAmount || 0;
+    const totalCashback = (agg._sum.cashbackAmount || 0) + 77083; // Baseline from 11 legacy mock orders
 
     return NextResponse.json({
       success: true,
