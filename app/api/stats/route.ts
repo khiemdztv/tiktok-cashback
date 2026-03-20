@@ -7,9 +7,8 @@ export const revalidate = 60;
 
 export async function GET() {
   try {
-    const totalLinks = await prisma.order.count({
-      where: { status: { in: ["pending", "paid"] } }
-    });
+    const totalLinks = await prisma.order.count();
+
     
     // Sum only the cashbackAmount from orders
     const agg = await prisma.order.aggregate({
