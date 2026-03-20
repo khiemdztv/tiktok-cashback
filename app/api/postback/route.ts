@@ -65,13 +65,20 @@ export async function POST(req: NextRequest) {
     let statusStr = searchParams.get("status"); 
     let payoutStr = searchParams.get("payout") || searchParams.get("commission");
 
-    // 2. Nếu không có ở URL, thử parse body (JSON)
+    // 2. Nếu không có ở URL, thử parse body (JSON hoặc Form-urlencoded)
     if (!phone) {
       try {
-        const bodyText = await req.text(); // Đọc text trước để tránh crash nếu empty
+        const bodyText = await req.text(); // Đọc raw text
         if (bodyText) {
-          const body = JSON.parse(bodyText);
-          console.log("AccessTrade Postback POST [Raw Body]:", bodyText);
+          let body: Record<string, any> = {};
+          if (bodyText.trim().startsWith("{")) {
+            body = JSON.parse(bodyText);
+          } else {
+            // AccessTrade thường gửi x-www-form-urlencoded
+            const params = new URLSearchParams(bodyText);
+            body = Object.fromEntries(params.entries());
+          }
+          console.log("AccessTrade Postback POST [Body Parsed]:", JSON.stringify(body));
           phone = phone || body.aff_sub1;
           statusStr = statusStr || body.status?.toString();
           payoutStr = payoutStr || body.payout?.toString() || body.commission?.toString();
