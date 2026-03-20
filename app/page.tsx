@@ -247,11 +247,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="flex justify-center mt-4 gap-6 text-sm">
-        <span className="text-gray-600">Tiền hoàn: <span className="text-primary font-bold">{formatVND(stats.paid)}</span></span>
-        <span className="text-gray-600">Chờ hoàn thành đơn: <span className="font-bold text-orange-500">{formatVND(stats.pending)}</span></span>
-      </div>
+
 
       {/* Buttons */}
       <div className="flex flex-col items-center gap-3 mt-6">
