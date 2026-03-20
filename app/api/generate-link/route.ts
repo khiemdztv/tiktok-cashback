@@ -12,7 +12,11 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.ACCESSTRADE_API_KEY;
     const bodyArgs: any = { product_url: productUrl };
-    if (phone) bodyArgs.aff_sub1 = phone;
+    if (phone) {
+      bodyArgs.aff_sub1 = phone;
+      bodyArgs.sub1 = phone;
+      bodyArgs.utm_source = phone;
+    }
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 seconds timeout
