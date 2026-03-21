@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const payout = payoutStr ? parseFloat(payoutStr) : undefined;
 
   // Find the most recent pending order for this phone
-  const pendingOrder = await prisma.order.findFirst({
+  let pendingOrder = await prisma.order.findFirst({
     where: { 
       phone, 
       status: { in: ["created", "pending"] } 
@@ -25,7 +25,22 @@ export async function GET(req: NextRequest) {
   });
 
   if (!pendingOrder) {
-    return NextResponse.json({ success: true, msg: "Không có đơn pending phù hợp" });
+    pendingOrder = await prisma.order.create({
+      data: {
+        phone,
+        status: "created",
+        originalUrl: "Link ngoài web",
+        affUrl: "N/A",
+        affShortUrl: "N/A",
+        productName: "Đơn hệ thống tự động ghi nhận",
+        productImage: "",
+        productPrice: 0,
+        commissionAmount: 0,
+        commissionRate: 0,
+        cashbackAmount: 0,
+        walletType: "momo", 
+      }
+    });
   }
 
   const updateData: any = {};
@@ -96,7 +111,7 @@ export async function POST(req: NextRequest) {
 
     const payout = payoutStr ? parseFloat(payoutStr) : undefined;
 
-    const pendingOrder = await prisma.order.findFirst({
+    let pendingOrder = await prisma.order.findFirst({
       where: { 
         phone, 
         status: { in: ["created", "pending"] } 
@@ -105,8 +120,23 @@ export async function POST(req: NextRequest) {
     });
 
     if (!pendingOrder) {
-      console.log("AT Webhook: No matching order found for phone", phone);
-      return NextResponse.json({ success: true, msg: "Không có đơn pending phù hợp" });
+      console.log("AT Webhook: Auto-creating order for phone", phone);
+      pendingOrder = await prisma.order.create({
+        data: {
+          phone,
+          status: "created",
+          originalUrl: "Link ngoài web",
+          affUrl: "N/A",
+          affShortUrl: "N/A",
+          productName: "Đơn hệ thống tự động ghi nhận",
+          productImage: "",
+          productPrice: 0,
+          commissionAmount: 0,
+          commissionRate: 0,
+          cashbackAmount: 0,
+          walletType: "momo", 
+        }
+      });
     }
 
     const updateData: any = {};
