@@ -11,7 +11,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Thiếu thông tin bắt buộc" }, { status: 400 });
 
     const apiKey = process.env.ACCESSTRADE_API_KEY;
-    const bodyArgs: any = { product_url: productUrl };
+    
+    // Expand rút gọn vt.tiktok.com trước khi gửi cho AT
+    let resolvedUrl = productUrl;
+    if (productUrl.includes("vt.tiktok.com") || productUrl.includes("tiktok.com/t/")) {
+      try {
+        const expandRes = await fetch(productUrl, {
+          method: "HEAD",
+          redirect: "follow",
+          signal: AbortSignal.timeout(8000),
+        });
+        if (expandRes.url && expandRes.url !== productUrl) {
+          resolvedUrl = expandRes.url;
+          console.log("Expanded URL:", resolvedUrl);
+        }
+      } catch (e) {
+        console.log("URL expand failed, using original:", e);
+      }
+    }
+
+    const bodyArgs: any = { product_url: resolvedUrl };
+
     if (phone) {
       bodyArgs.aff_sub1 = phone;
       bodyArgs.sub1 = phone;
