@@ -83,6 +83,7 @@ export default function Home() {
   async function handleGenerate() {
     if (!productUrl.trim()) return setError("Vui lòng nhập link sản phẩm");
     if (!phone.trim()) return setError("Vui lòng nhập số điện thoại");
+    if (!/^[0-9]{10}$/.test(phone.trim())) return setError("Số điện thoại phải đúng 10 chữ số");
     if (useBankAccount && !bankName) return setError("Vui lòng chọn ngân hàng");
     if (useBankAccount && !bankAccount.trim()) return setError("Vui lòng nhập số tài khoản");
     if (useBankAccount && !bankHolder.trim()) return setError("Vui lòng nhập tên chủ tài khoản");
@@ -329,8 +330,10 @@ export default function Home() {
                       Số điện thoại <span className="text-gray-400 cursor-help" title="Dùng để tra cứu và nhận hoàn tiền">ⓘ</span>
                     </label>
                     <div className="flex gap-2">
-                      <input value={phone} onChange={e => setPhone(e.target.value)}
-                        placeholder="Nhập số điện thoại"
+                      <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        placeholder="Nhập số điện thoại (10 số)"
+                        inputMode="numeric"
+                        maxLength={10}
                         className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
                       {!useBankAccount && (
                         <select value={walletType} onChange={e => setWalletType(e.target.value)}
