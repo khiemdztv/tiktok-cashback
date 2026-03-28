@@ -17,12 +17,18 @@ export async function POST(req: NextRequest) {
     if (productUrl.includes("vt.tiktok.com") || productUrl.includes("tiktok.com/t/")) {
       try {
         const expandRes = await fetch(productUrl, {
-          method: "HEAD",
+          method: "GET",
           redirect: "follow",
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          },
           signal: AbortSignal.timeout(8000),
         });
+        // Lấy URL sau khi redirect
         if (expandRes.url && expandRes.url !== productUrl) {
-          resolvedUrl = expandRes.url;
+          // Chỉ lấy phần path sạch, bỏ token phiên đăng nhập
+          const clean = new URL(expandRes.url);
+          resolvedUrl = `${clean.origin}${clean.pathname}`;
           console.log("Expanded URL:", resolvedUrl);
         }
       } catch (e) {
