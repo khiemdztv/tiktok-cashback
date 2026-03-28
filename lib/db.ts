@@ -23,10 +23,7 @@ export async function getAllOrders() {
 
 export async function getOrdersByPhone(phone: string) {
   return prisma.order.findMany({
-    where: { 
-      phone,
-      status: { not: "created" }
-    },
+    where: { phone },
     orderBy: { createdAt: "desc" },
   });
 }

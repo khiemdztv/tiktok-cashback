@@ -451,11 +451,13 @@ export default function Home() {
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                             order.status === "paid" ? "bg-green-100 text-green-700" : 
                             order.status === "pending" ? "bg-orange-100 text-orange-600" : 
-                            "bg-gray-100 text-gray-600"
+                            order.status === "rejected" ? "bg-red-100 text-red-600" :
+                            "bg-blue-100 text-blue-600"
                           }`}>
                             {order.status === "paid" ? "✓ Đã duyệt" : 
                              order.status === "pending" ? "⏳ Chờ duyệt" : 
-                             "🔗 Chưa nhấp/mua"}
+                             order.status === "rejected" ? "❌ Bị huỷ" :
+                             "🔄 Đang xử lý..."}
                           </span>
                         </div>
                         <p className="text-xs text-gray-400 mt-1">
