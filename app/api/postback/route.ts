@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
-  let phone = searchParams.get("aff_sub1") || searchParams.get("sub1") || searchParams.get("utm_source"); 
+  let phone = searchParams.get("utm_source") || searchParams.get("aff_sub1") || searchParams.get("sub1"); 
   if (phone === "{aff_sub1}" || phone === "{sub1}" || phone === "{utm_source}") phone = null;
 
   const statusStr = searchParams.get("status"); 
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
             body = Object.fromEntries(params.entries());
           }
           console.log("AccessTrade Postback POST [Body Parsed]:", JSON.stringify(body));
-          phone = phone || body.aff_sub1 || body.sub1 || body.utm_source;
+          phone = phone || body.utm_source || body.aff_sub1 || body.sub1;
           if (phone === "{aff_sub1}" || phone === "{sub1}" || phone === "{utm_source}") phone = null;
           statusStr = statusStr || body.status?.toString();
           payoutStr = payoutStr || body.payout?.toString() || body.commission?.toString();
