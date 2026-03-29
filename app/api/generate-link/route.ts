@@ -81,6 +81,44 @@ export async function POST(req: NextRequest) {
     const commissionAmount = Math.floor(rawCommissionAmount * 0.648);
     const cashbackAmount = Math.floor(commissionAmount * 0.65);
 
+    // Lấy tên + ảnh đúng từ OG tags của trang TikTok (AT hay trả sai)
+    let productName = d.product_name || "Sản phẩm TikTok Shop";
+    let productImage = d.product_image || "";
+    try {
+      const ogRes = await fetch(productUrl, {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        },
+        signal: AbortSignal.timeout(6000),
+      });
+      
+      const parsedUrl = new URL(ogRes.url);
+      const ogInfoRaw = parsedUrl.searchParams.get("og_info");
+      
+      if (ogInfoRaw) {
+        // Ưu tiên đọc từ query og_info của TikTok (không bị chặn)
+        const ogInfo = JSON.parse(ogInfoRaw);
+        if (ogInfo.title) productName = ogInfo.title;
+        if (ogInfo.image) productImage = ogInfo.image;
+        console.log("Extracted from og_info:", productName);
+      } else {
+        // Fallback đọc từ HTML nếu không có og_info
+        const html = await ogRes.text();
+        const titleMatch = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i)
+          || html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:title"/i)
+          || html.match(/<title>([^<]+)<\/title>/i);
+        const imageMatch = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i)
+          || html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i);
+        if (titleMatch?.[1]) productName = titleMatch[1].replace(/ \| TikTok.*$/, "").trim();
+        if (imageMatch?.[1]) productImage = imageMatch[1];
+        console.log("Extracted from HTML OG tags:", productName);
+      }
+    } catch (e) {
+      console.log("Metadata extraction failed, using AT metadata:", e);
+    }
+
     const order = await addOrder({
       phone,
       walletType,
@@ -88,8 +126,8 @@ export async function POST(req: NextRequest) {
       originalUrl: productUrl,
       affUrl: d.aff_url,
       affShortUrl: d.aff_short_url,
-      productName: d.product_name || "Sản phẩm TikTok Shop",
-      productImage: d.product_image || "",
+      productName,
+      productImage,
       productPrice: parseInt(d.product_price?.minimum_amount || "0"),
       commissionAmount,
       commissionRate: d.product_commission?.rate || 0,
@@ -99,8 +137,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       affUrl: d.aff_url,
       affShortUrl: d.aff_short_url,
-      productName: d.product_name,
-      productImage: d.product_image,
+      productName,
+      productImage,
       productPrice: parseInt(d.product_price?.minimum_amount || "0"),
       commissionAmount,
       commissionRate: d.product_commission?.rate || 0,
