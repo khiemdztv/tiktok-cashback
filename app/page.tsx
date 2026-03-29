@@ -414,10 +414,14 @@ export default function Home() {
                   <p className="text-sm font-mono text-primary break-all">{result.affShortUrl}</p>
                 </div>
                 <button onClick={() => { navigator.clipboard.writeText(result.affShortUrl); }}
-                  className="w-full bg-gradient-to-r from-primary to-teal-600 hover:from-teal-700 hover:to-teal-800 text-white font-semibold py-3 rounded-lg mb-2 transition-all shadow-md">
+                  className="w-full bg-gradient-to-r from-primary to-teal-600 hover:from-teal-700 hover:to-teal-800 text-white font-semibold py-3 rounded-lg mb-3 transition-all shadow-md">
                   📋 Copy link
                 </button>
-                <p className="text-xs text-center text-gray-400">Bấm vào link này để mua → nhận hoàn tiền sau 15 ngày</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-xs text-red-600 font-medium text-center leading-relaxed">
+                    * Nếu quý khách muốn xem hoa hồng hoàn về thực nhận, vui lòng mua hàng bằng link trên và quay lại Cửa sổ tra cứu bằng số điện thoại sau 1-2 tiếng.
+                  </p>
+                </div>
               </>
             )}
           </div>
