@@ -398,15 +398,15 @@ export default function Home() {
                 <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Giá sản phẩm</span>
-                    <span className="font-medium text-gray-700">Giá mua thực tế</span>
+                    <span className="font-medium">{formatVND(result.productPrice)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Hoa hồng (5-15%)</span>
-                    <span className="font-medium text-gray-700">Hoa hồng dự kiến</span>
+                    <span className="text-gray-500">Hoa hồng ({result.commissionRate / 100}%)</span>
+                    <span className="font-medium">{formatVND(result.commissionAmount)}</span>
                   </div>
                   <div className="flex justify-between border-t border-gray-200 pt-1.5">
                     <span className="text-gray-700 font-semibold">Bạn được hoàn (80%)</span>
-                    <span className="text-primary font-bold text-sm">Trích từ hoa hồng dự kiến</span>
+                    <span className="text-primary font-bold text-base">{formatVND(result.cashbackAmount)}</span>
                   </div>
                 </div>
                 <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 mb-4">
