@@ -1,18 +1,12 @@
 import { prisma } from "./prisma";
 
 export interface OrderInput {
+  trackingId?: string;
   phone: string;
   walletType: string;
   bankAccount?: string;
   originalUrl: string;
-  affUrl: string;
-  affShortUrl: string;
-  productName: string;
-  productImage: string;
-  productPrice: number;
-  commissionAmount: number;
-  commissionRate: number;
-  cashbackAmount: number;
+  productName?: string;
 }
 
 export async function getAllOrders() {
@@ -23,10 +17,7 @@ export async function getAllOrders() {
 
 export async function getOrdersByPhone(phone: string) {
   return prisma.order.findMany({
-    where: { 
-      phone,
-      status: { not: "created" }
-    },
+    where: { phone },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -34,8 +25,24 @@ export async function getOrdersByPhone(phone: string) {
 export async function addOrder(data: OrderInput) {
   return prisma.order.create({
     data: {
-      ...data,
-      status: "created",
+      trackingId: data.trackingId,
+      phone: data.phone,
+      walletType: data.walletType,
+      bankAccount: data.bankAccount,
+      originalUrl: data.originalUrl,
+      productName: data.productName || "Sản phẩm Shopee",
+      status: "pending",
+    },
+  });
+}
+
+export async function updateOrderAffLink(id: string, affUrl: string, cashbackAmount?: number) {
+  return prisma.order.update({
+    where: { id },
+    data: {
+      affUrl,
+      affShortUrl: affUrl,
+      ...(cashbackAmount !== undefined ? { cashbackAmount } : {}),
     },
   });
 }
@@ -48,6 +55,18 @@ export async function markOrderPaid(id: string) {
         status: "paid",
         paidAt: new Date(),
       },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function markOrderRejected(id: string) {
+  try {
+    await prisma.order.update({
+      where: { id },
+      data: { status: "rejected" },
     });
     return true;
   } catch {

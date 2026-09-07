@@ -1,4 +1,4 @@
-# TikTok Shop Cashback Website
+# Săn Tiền Về — cashback.id.vn
 
 ## Cài đặt và chạy
 
@@ -7,24 +7,33 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:3000 → trang chủ
-Mở http://localhost:3000/admin → admin dashboard (mật khẩu: admin123)
+Mở http://localhost:3000 để xem giao diện Săn Tiền Về được chuyển từ `Săn Tiền Về.zip` vào dự án Next.js hiện tại.
 
-## Deploy lên Railway
+Các trang của mẫu được giữ lại: trang chủ, cashback, voucher, danh sách/chi tiết cửa hàng, so sánh giá, tìm kiếm, cách hoạt động, giới thiệu, điều khoản và bảo mật.
 
-1. Push code lên GitHub
-2. Vào railway.app → New Project → Deploy from GitHub
-3. Add PostgreSQL (optional, hiện tại dùng JSON file)
-4. Set environment variables:
-   - ACCESSTRADE_API_KEY=your_key
-   - ADMIN_PASSWORD=your_password
-5. Deploy → Done!
+Tab **Công cụ** tại `/tools` chứa chức năng đổi link Shopee cũ. Chỉ nhập link sản phẩm, lấy link mới, sao chép hoặc mở link. Không đăng nhập, không nhập số điện thoại, ví hay ngân hàng. API đổi link không tạo đơn và không gửi thông báo Telegram. Endpoint tra cứu đơn công khai đã ngừng hoạt động (HTTP 410); dữ liệu và trang quản trị cũ vẫn được giữ lại.
+
+Footer giữ `© 2026 cashback.id.vn - Powered by khiemdztv` cùng Facebook/Zalo và hai nút liên hệ nổi. Icon danh mục dùng Lucide; logo sàn được lưu nội bộ. Chuyển động hỗ trợ cài đặt giảm hiệu ứng của thiết bị.
+
+## Dữ liệu và cấu hình
+
+- `src/data/mock.ts` là dữ liệu mẫu của bản Săn Tiền Về. Cashback, voucher, cửa hàng và bảng so sánh hiện chưa kết nối nguồn dữ liệu trực tiếp. Giao diện có ghi chú dữ liệu tham khảo.
+- Đổi link tiếp tục dùng `lib/shpee-cc.ts` và `SHOPEE_AFFILIATE_ID` từ cấu hình môi trường hiện có. Kết quả phụ thuộc dịch vụ `short.shpee.cc`.
+- Không đưa `.env`, `.env.local`, database hoặc khóa API lên kho mã công khai.
+
+## Kiểm tra bản production
+
+```bash
+npm run build
+npm start
+```
 
 ## Cấu trúc
 
-- app/page.tsx — Trang chủ user
-- app/admin/page.tsx — Dashboard admin
-- app/api/generate-link/route.ts — Tạo affiliate link
-- app/api/orders/route.ts — Quản lý đơn hàng
-- lib/db.ts — Lưu trữ JSON
-- data/db.json — Database (tự tạo khi chạy)
+- `app/` — Các route Next.js, metadata, API và CSS toàn cục.
+- `src/routes/` — Toàn bộ giao diện trang được chuyển từ mẫu.
+- `src/components/` — Layout, thẻ cashback/voucher, icon, tìm kiếm và công cụ đổi link.
+- `src/lib/navigation.tsx` — Điều hướng của mẫu tích hợp với Next.js.
+- `app/api/generate-link/route.ts` — Chuyển link, chỉ nhận `productUrl`.
+- `public/brands/` — Logo SVG lưu nội bộ.
+- `app/admin/`, `prisma/`, `lib/db.ts` — Quản trị và dữ liệu cũ.

@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const totalLinks = await prisma.order.count();
 
-    
+
     // Sum only the cashbackAmount from orders
     const agg = await prisma.order.aggregate({
       where: { status: { in: ["pending", "paid"] } },
@@ -18,7 +18,7 @@ export async function GET() {
       }
     });
 
-    const totalCashback = (agg._sum.cashbackAmount || 0) + 77083; // Baseline from 11 legacy mock orders
+    const totalCashback = agg._sum.cashbackAmount || 0;
 
     return NextResponse.json({
       success: true,

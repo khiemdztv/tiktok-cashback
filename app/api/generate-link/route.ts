@@ -1,111 +1,78 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addOrder } from "@/lib/db";
+import { buildShopeeAffiliateLink } from "@/lib/shopee-affiliate";
+import { fetchShpeeCc } from "@/lib/shpee-cc";
 
-export const maxDuration = 30;
+const AFFILIATE_ID = process.env.SHOPEE_AFFILIATE_ID || "";
+
+function createTrackingId() {
+  return `cb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function applyTrackingIdToAffiliateLink(link: string, trackingId: string) {
+  try {
+    const url = new URL(link);
+    url.searchParams.set("sub_id", trackingId);
+    return url.toString();
+  } catch {
+    return link;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { productUrl, phone, walletType, bankAccount } = await req.json();
+    const { productUrl } = await req.json();
 
-    if (!productUrl || !phone || !walletType)
-      return NextResponse.json({ error: "Thiếu thông tin bắt buộc" }, { status: 400 });
+    if (typeof productUrl !== "string" || !productUrl.trim())
+      return NextResponse.json({ error: "Vui lòng nhập link sản phẩm" }, { status: 400 });
 
-    const apiKey = process.env.ACCESSTRADE_API_KEY;
-    
-    // Expand rút gọn vt.tiktok.com trước khi gửi cho AT
-    let resolvedUrl = productUrl;
-    if (productUrl.includes("vt.tiktok.com") || productUrl.includes("tiktok.com/t/")) {
-      try {
-        const expandRes = await fetch(productUrl, {
-          method: "GET",
-          redirect: "follow",
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-          },
-          signal: AbortSignal.timeout(8000),
-        });
-        // Lấy URL sau khi redirect
-        if (expandRes.url && expandRes.url !== productUrl) {
-          // Chỉ lấy phần path sạch, bỏ token phiên đăng nhập
-          const clean = new URL(expandRes.url);
-          resolvedUrl = `${clean.origin}${clean.pathname}`;
-          console.log("Expanded URL:", resolvedUrl);
-        }
-      } catch (e) {
-        console.log("URL expand failed, using original:", e);
-      }
+    let parsedUrl: URL;
+    try { parsedUrl = new URL(productUrl.trim()); }
+    catch { return NextResponse.json({ error: "Link sản phẩm không hợp lệ" }, { status: 400 }); }
+    if (!['http:', 'https:'].includes(parsedUrl.protocol) || !(parsedUrl.hostname === 'shopee.vn' || parsedUrl.hostname.endsWith('.shopee.vn') || parsedUrl.hostname === 'shope.ee')) {
+      return NextResponse.json(
+        { error: "Vui lòng nhập link sản phẩm Shopee hợp lệ" },
+        { status: 400 }
+      );
     }
 
-    const bodyArgs: any = { product_url: resolvedUrl };
+    // Use shpee.cc API - returns full product info + affiliate link instantly
+    const trackingId = createTrackingId();
+    const shpeeCcResult = await fetchShpeeCc(productUrl.trim(), AFFILIATE_ID, trackingId);
 
-    if (phone) {
-      bodyArgs.aff_sub1 = phone;
-      bodyArgs.sub1 = phone;
-      bodyArgs.utm_source = phone;
+    if (!shpeeCcResult || !shpeeCcResult.productInfo) {
+      return NextResponse.json(
+        { error: "Không lấy được thông tin sản phẩm. Vui lòng thử link khác." },
+        { status: 400 }
+      );
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 seconds timeout
+    const p = shpeeCcResult.productInfo;
+    const productName = p.productName;
+    const productImage = p.imageUrl;
+    const productPrice = p.price;
+    const productSales = p.sales;
+    const productRating = p.rating;
+    const shopName = p.shopName;
+    const itemId = String(p.itemId);
+    const shopIdMatch = p.productLink.match(/\/product\/(\d+)\/(\d+)/);
+    const shopId = shopIdMatch ? shopIdMatch[1] : "";
 
-    let res;
-    try {
-      res = await fetch("https://api.accesstrade.vn/v2/tiktokshop_product_feeds/create_link", {
-        method: "POST",
-        headers: {
-          authorization: `Token ${apiKey}`,
-          "content-type": "application/json",
-          origin: "https://pub2.accesstrade.vn",
-          referer: "https://pub2.accesstrade.vn/",
-        },
-        body: JSON.stringify(bodyArgs),
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-    } catch (fetchError: any) {
-      if (fetchError.name === "AbortError") {
-        return NextResponse.json({ error: "AccessTrade phản hồi quá chậm, vui lòng thử lại." }, { status: 504 });
-      }
-      throw fetchError;
-    }
-
-
-    const json = await res.json();
-    console.log("AT status:", res.status);
-    console.log("AT response:", JSON.stringify(json));
-
-    if (!json.status || !json.data)
-      return NextResponse.json({ error: "Không thể tạo link. Vui lòng kiểm tra lại link sản phẩm." }, { status: 400 });
-
-    const d = json.data;
-    const rawCommissionAmount = parseInt(d.product_commission?.amount || "0");
-    const commissionAmount = Math.floor(rawCommissionAmount * 0.648);
-    const cashbackAmount = Math.floor(commissionAmount * 0.65);
-
-    const order = await addOrder({
-      phone,
-      walletType,
-      bankAccount,
-      originalUrl: productUrl,
-      affUrl: d.aff_url,
-      affShortUrl: d.aff_short_url,
-      productName: d.product_name || "Sản phẩm TikTok Shop",
-      productImage: d.product_image || "",
-      productPrice: parseInt(d.product_price?.minimum_amount || "0"),
-      commissionAmount,
-      commissionRate: d.product_commission?.rate || 0,
-      cashbackAmount,
-    });
+    const rawAffShortUrl =
+      shpeeCcResult.affiliateLinks?.[0]?.affiliate_link ||
+      buildShopeeAffiliateLink(shopId, itemId, trackingId);
+    const affShortUrl = applyTrackingIdToAffiliateLink(rawAffShortUrl, trackingId);
 
     return NextResponse.json({
-      affUrl: d.aff_url,
-      affShortUrl: d.aff_short_url,
-      productName: d.product_name,
-      productImage: d.product_image,
-      productPrice: parseInt(d.product_price?.minimum_amount || "0"),
-      commissionAmount,
-      commissionRate: d.product_commission?.rate || 0,
-      cashbackAmount,
-      orderId: order.id,
+      success: true,
+      trackingId,
+      productName,
+      productImage,
+      productPrice,
+      productSales,
+      productRating,
+      shopName,
+      affShortUrl,
+      affLongUrl: affShortUrl,
     });
   } catch (e) {
     console.error(e);

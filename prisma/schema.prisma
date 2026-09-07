@@ -9,19 +9,32 @@ datasource db {
 
 model Order {
   id               String    @id @default(uuid())
+  trackingId       String?   @unique
   phone            String
   walletType       String
   bankAccount      String?
   originalUrl      String
-  affUrl           String
-  affShortUrl      String
-  productName      String
-  productImage     String
-  productPrice     Int
-  commissionAmount Int
-  commissionRate   Float
-  cashbackAmount   Int
+  affUrl           String    @default("")
+  affShortUrl      String    @default("")
+  productName      String    @default("")
+  productImage     String    @default("")
+  productPrice     Int       @default(0)
+  commissionAmount Int       @default(0)
+  commissionRate   Float     @default(0)
+  cashbackAmount   Int       @default(0)
   status           String    @default("pending")
   createdAt        DateTime  @default(now())
   paidAt           DateTime?
+}
+
+model Link {
+  code         String   @id
+  shopId       String
+  itemId       String
+  productName  String   @default("")
+  productImage String   @default("")
+  productPrice Int      @default(0)
+  subId        String?
+  clicks       Int      @default(0)
+  createdAt    DateTime @default(now())
 }

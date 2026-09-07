@@ -1,13 +1,51 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        primary: "#0d9c8f",
-        secondary: "#1a6b4a",
-      }
-    }
-  },
-  plugins: [],
-}
+ content: ["./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+ theme: { extend: { colors: {
+  "background": "oklch(0.995 0.003 150 / <alpha-value>)",
+  "foreground": "oklch(0.19 0.02 160 / <alpha-value>)",
+  "card": "oklch(1 0 0 / <alpha-value>)",
+  "card-foreground": "oklch(0.19 0.02 160 / <alpha-value>)",
+  "popover": "oklch(1 0 0 / <alpha-value>)",
+  "popover-foreground": "oklch(0.19 0.02 160 / <alpha-value>)",
+  "surface": "oklch(0.972 0.008 155 / <alpha-value>)",
+  "surface-foreground": "oklch(0.3 0.02 160 / <alpha-value>)",
+  "primary": "oklch(0.62 0.15 158 / <alpha-value>)",
+  "primary-foreground": "oklch(0.99 0.01 150 / <alpha-value>)",
+  "brand": "oklch(0.62 0.15 158 / <alpha-value>)",
+  "brand-foreground": "oklch(0.99 0.01 150 / <alpha-value>)",
+  "brand-soft": "oklch(0.955 0.04 158 / <alpha-value>)",
+  "secondary": "oklch(0.965 0.008 155 / <alpha-value>)",
+  "secondary-foreground": "oklch(0.26 0.02 160 / <alpha-value>)",
+  "muted": "oklch(0.965 0.006 155 / <alpha-value>)",
+  "muted-foreground": "oklch(0.52 0.015 160 / <alpha-value>)",
+  "accent": "oklch(0.955 0.04 158 / <alpha-value>)",
+  "accent-foreground": "oklch(0.36 0.09 158 / <alpha-value>)",
+  "success": "oklch(0.62 0.15 158 / <alpha-value>)",
+  "success-foreground": "oklch(0.99 0.01 150 / <alpha-value>)",
+  "warning": "oklch(0.8 0.15 78 / <alpha-value>)",
+  "warning-foreground": "oklch(0.28 0.06 78 / <alpha-value>)",
+  "destructive": "oklch(0.58 0.2 25 / <alpha-value>)",
+  "destructive-foreground": "oklch(0.99 0.005 150 / <alpha-value>)",
+  "border": "oklch(0.918 0.008 158 / <alpha-value>)",
+  "input": "oklch(0.918 0.008 158 / <alpha-value>)",
+  "ring": "oklch(0.62 0.15 158 / <alpha-value>)",
+  "chart-1": "oklch(0.62 0.15 158 / <alpha-value>)",
+  "chart-2": "oklch(0.7 0.12 200 / <alpha-value>)",
+  "chart-3": "oklch(0.75 0.14 80 / <alpha-value>)",
+  "chart-4": "oklch(0.6 0.12 280 / <alpha-value>)",
+  "chart-5": "oklch(0.65 0.17 25 / <alpha-value>)",
+  "sidebar": "oklch(0.985 0.004 155 / <alpha-value>)",
+  "sidebar-foreground": "oklch(0.19 0.02 160 / <alpha-value>)",
+  "sidebar-primary": "oklch(0.62 0.15 158 / <alpha-value>)",
+  "sidebar-primary-foreground": "oklch(0.99 0.01 150 / <alpha-value>)",
+  "sidebar-accent": "oklch(0.955 0.04 158 / <alpha-value>)",
+  "sidebar-accent-foreground": "oklch(0.36 0.09 158 / <alpha-value>)",
+  "sidebar-border": "oklch(0.918 0.008 158 / <alpha-value>)",
+  "sidebar-ring": "oklch(0.62 0.15 158 / <alpha-value>)",
+  "cream": "#FFF8F5",
+  "cream-warm": "#FFF3F0",
+  "dark": "#1A1A2E",
+  "navy": "#0F3460"
+}, fontFamily: { sans: ["Be Vietnam Pro", "sans-serif"] }, boxShadow: { soft: "0 1px 2px oklch(0.2 0.03 160 / 0.04), 0 8px 24px oklch(0.2 0.03 160 / 0.06)", lift: "0 2px 6px oklch(0.2 0.03 160 / 0.06), 0 18px 40px oklch(0.2 0.03 160 / 0.1)" } } }, plugins: []
+};
