@@ -68,7 +68,7 @@ function searchDomainGroups(query: string) {
 
 function upstreamError(error: unknown) {
   if (error instanceof YouApiError) {
-    if ([401, 402, 403].includes(error.status)) {
+    if ([401, 402, 403, 503].includes(error.status)) {
       return NextResponse.json(
         { error: "Dịch vụ tìm kiếm chưa sẵn sàng. Vui lòng thử lại sau.", code: "UPSTREAM_AUTH" },
         { status: 503 },

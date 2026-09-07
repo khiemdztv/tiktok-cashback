@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { headers });
   } catch (error) {
     if (error instanceof YouApiError) {
-      const status = [401, 402, 403].includes(error.status) ? 503 : error.status === 504 ? 504 : 502;
+      const status = [401, 402, 403, 503].includes(error.status) ? 503 : error.status === 504 ? 504 : 502;
       return NextResponse.json(
         {
           error: status === 503 ? "Dịch vụ AI chưa sẵn sàng. Vui lòng thử lại sau." : error.message,

@@ -87,8 +87,8 @@ export class YouApiError extends Error {
 }
 
 function apiKey() {
-  const key = process.env.YOU_API_KEY?.trim();
-  if (!key) throw new YouApiError("YOU_API_KEY chưa được cấu hình.", 503);
+  const key = process.env.YOU_API_KEY?.trim() || process.env.YDC_API_KEY?.trim();
+  if (!key) throw new YouApiError("You.com API key chưa được cấu hình.", 503);
   return key;
 }
 
