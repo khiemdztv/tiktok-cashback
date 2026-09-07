@@ -5,7 +5,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link
       to="/"
-      className={`brand-logo group relative block shrink-0 ${compact ? "h-12 w-[160px]" : "h-14 w-[210px] sm:w-[250px]"}`}
+      className={`brand-logo group relative block shrink-0 ${compact ? "h-12 w-[160px]" : "h-14 w-[185px] sm:w-[220px]"}`}
       aria-label="cashback.id.vn - Trang chủ"
     >
       <Image
