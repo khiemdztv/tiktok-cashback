@@ -106,7 +106,7 @@ export default function HomePage() {
             variant="secondary"
             className="mb-6 rounded-full px-3 py-1.5 text-xs font-medium"
           >
-            <TrendingUp className="mr-1.5 size-3.5" /> cashback.id.vn · Săn Tiền Về
+            <TrendingUp className="mr-1.5 size-3.5" /> cashback.id.vn · Cập nhật mỗi ngày
           </Badge>
           <h1 className="mx-auto max-w-4xl text-4xl font-extrabold leading-[1.1] md:text-6xl">
             Mua gì cũng kiểm tra <span className="text-primary">cashback</span> trước.
@@ -239,7 +239,7 @@ export default function HomePage() {
             <ShieldCheck className="size-9 text-primary" />
             <h2 className="mt-4 text-2xl font-bold md:text-3xl">Minh bạch trước khi bạn mua</h2>
             <p className="mt-3 text-muted-foreground">
-              Cashback ID là nền tảng thông tin và khám phá ưu đãi. Chúng tôi tổng hợp dữ liệu để bạn
+              cashback.id.vn là nền tảng thông tin và khám phá ưu đãi. Chúng tôi tổng hợp dữ liệu để bạn
               quyết định dễ hơn.
             </p>
             <Link
@@ -254,7 +254,7 @@ export default function HomePage() {
               "Cashback có thể thay đổi theo thời gian.",
               "Điều kiện áp dụng có thể khác nhau.",
               "Luôn kiểm tra điều kiện trước khi mua.",
-              "Cashback ID không trực tiếp xử lý giao dịch.",
+              "cashback.id.vn không trực tiếp xử lý giao dịch.",
             ].map((t) => (
               <li key={t} className="flex items-start gap-3 rounded-xl bg-card p-4 shadow-soft">
                 <BadgeCheck className="mt-0.5 size-5 shrink-0 text-primary" />

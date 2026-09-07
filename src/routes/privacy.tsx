@@ -9,7 +9,7 @@ import { LAST_UPDATED } from "@/src/data/mock";
 const sections = [
   {
     title: "1. Dữ liệu chúng tôi thu thập",
-    body: "Ở phiên bản hiện tại, Cashback ID không yêu cầu tài khoản và không thu thập thông tin cá nhân nhạy cảm. Chúng tôi có thể thu thập dữ liệu ẩn danh về lượt truy cập và từ khoá tìm kiếm để cải thiện chất lượng thông tin.",
+    body: "Ở phiên bản hiện tại, cashback.id.vn không yêu cầu tài khoản và không thu thập thông tin cá nhân nhạy cảm. Chúng tôi có thể thu thập dữ liệu ẩn danh về lượt truy cập và từ khoá tìm kiếm để cải thiện chất lượng thông tin.",
   },
   {
     title: "2. Mục đích sử dụng",

@@ -9,11 +9,11 @@ import { LAST_UPDATED } from "@/src/data/mock";
 const sections = [
   {
     title: "1. Phạm vi dịch vụ",
-    body: "Cashback ID là nền tảng tổng hợp và cung cấp thông tin về chương trình cashback, voucher, khuyến mãi và giá bán. Chúng tôi không bán hàng, không xử lý thanh toán và không trực tiếp chi trả cashback.",
+    body: "cashback.id.vn là nền tảng tổng hợp và cung cấp thông tin về chương trình cashback, voucher, khuyến mãi và giá bán. Chúng tôi không bán hàng, không xử lý thanh toán và không trực tiếp chi trả cashback.",
   },
   {
     title: "2. Tính chính xác của thông tin",
-    body: "Thông tin trên Cashback ID được tổng hợp từ nhiều nguồn và có thể thay đổi bất kỳ lúc nào. Bạn cần kiểm tra lại tỷ lệ cashback, điều kiện voucher và giá bán tại website của đối tác trước khi giao dịch.",
+    body: "Thông tin trên cashback.id.vn được tổng hợp từ nhiều nguồn và có thể thay đổi bất kỳ lúc nào. Bạn cần kiểm tra lại tỷ lệ cashback, điều kiện voucher và giá bán tại website của đối tác trước khi giao dịch.",
   },
   {
     title: "3. Trách nhiệm của người dùng",
@@ -21,7 +21,7 @@ const sections = [
   },
   {
     title: "4. Giới hạn trách nhiệm",
-    body: "Cashback ID không chịu trách nhiệm với các khoản cashback bị từ chối, voucher hết hạn, thay đổi giá hoặc tranh chấp phát sinh giữa bạn và đơn vị bán hàng hoặc đơn vị cung cấp cashback.",
+    body: "cashback.id.vn không chịu trách nhiệm với các khoản cashback bị từ chối, voucher hết hạn, thay đổi giá hoặc tranh chấp phát sinh giữa bạn và đơn vị bán hàng hoặc đơn vị cung cấp cashback.",
   },
   {
     title: "5. Liên kết đến bên thứ ba",

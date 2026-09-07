@@ -1,18 +1,18 @@
 import { Link } from "@/src/lib/navigation";
-import { RotateCcw } from "lucide-react";
+import Image from "next/image";
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" className="group flex items-center gap-2.5">
-      <span className="relative grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-soft transition-transform group-hover:scale-105">
-        <RotateCcw className="size-6 transition-transform duration-500 group-hover:-rotate-45" strokeWidth={1.8} />
-        <span className="absolute text-[10px] font-bold">%</span>
-      </span>
-      {!compact && (
-        <span className="text-[17px] font-extrabold tracking-tight">
-          Săn Tiền <span className="text-primary">Về</span>
-        </span>
-      )}
+    <Link to="/" className={`brand-logo group relative block shrink-0 overflow-hidden ${compact ? "h-10 w-[142px]" : "h-11 w-[150px] sm:w-[180px]"}`} aria-label="cashback.id.vn - Trang chủ">
+      <Image
+        src="/cashback.id.vn.png"
+        alt="cashback.id.vn"
+        width={1254}
+        height={1254}
+        priority
+        sizes={compact ? "142px" : "(max-width: 639px) 150px, 180px"}
+        className="absolute left-0 top-1/2 h-auto w-full -translate-y-1/2 transition-transform duration-300 group-hover:scale-[1.03]"
+      />
     </Link>
   );
 }

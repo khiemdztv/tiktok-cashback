@@ -3,10 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://cashback.id.vn"),
-  title: "Săn Tiền Về — Cashback ID | cashback.id.vn",
+  title: "cashback.id.vn — Kiểm tra cashback trước khi mua",
   description: "Khám phá cashback, voucher, cửa hàng và so sánh cách mua tiết kiệm hơn tại cashback.id.vn. Công cụ đổi link Shopee miễn phí, không cần đăng nhập.",
-  icons: { icon: "/icon.svg" },
-  openGraph: { title: "Săn Tiền Về | cashback.id.vn", description: "Kiểm tra cashback trước khi mua. Tìm ưu đãi và cách mua sắm tiết kiệm hơn.", siteName: "Săn Tiền Về", locale: "vi_VN", type: "website" },
+  icons: { icon: "/cashback.id.vn.png", apple: "/cashback.id.vn.png" },
+  openGraph: { title: "cashback.id.vn — Kiểm tra cashback trước khi mua", description: "Kiểm tra cashback trước khi mua. Tìm ưu đãi và cách mua sắm tiết kiệm hơn.", siteName: "cashback.id.vn", locale: "vi_VN", type: "website" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

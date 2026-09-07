@@ -1,4 +1,4 @@
-# Săn Tiền Về — cashback.id.vn
+# cashback.id.vn
 
 ## Cài đặt và chạy
 
@@ -7,7 +7,7 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:3000 để xem giao diện Săn Tiền Về được chuyển từ `Săn Tiền Về.zip` vào dự án Next.js hiện tại.
+Mở http://localhost:3000 để xem giao diện cashback.id.vn được chuyển từ mẫu thiết kế vào dự án Next.js hiện tại.
 
 Các trang của mẫu được giữ lại: trang chủ, cashback, voucher, danh sách/chi tiết cửa hàng, so sánh giá, tìm kiếm, cách hoạt động, giới thiệu, điều khoản và bảo mật.
 
@@ -17,7 +17,7 @@ Footer giữ `© 2026 cashback.id.vn - Powered by khiemdztv` cùng Facebook/Zalo
 
 ## Dữ liệu và cấu hình
 
-- `src/data/mock.ts` là dữ liệu mẫu của bản Săn Tiền Về. Cashback, voucher, cửa hàng và bảng so sánh hiện chưa kết nối nguồn dữ liệu trực tiếp. Giao diện có ghi chú dữ liệu tham khảo.
+- `src/data/mock.ts` chứa dữ liệu mẫu. Cashback, voucher, cửa hàng và bảng so sánh hiện chưa kết nối nguồn dữ liệu trực tiếp. Giao diện có ghi chú dữ liệu tham khảo.
 - Đổi link tiếp tục dùng `lib/shpee-cc.ts` và `SHOPEE_AFFILIATE_ID` từ cấu hình môi trường hiện có. Kết quả phụ thuộc dịch vụ `short.shpee.cc`.
 - Không đưa `.env`, `.env.local`, database hoặc khóa API lên kho mã công khai.
 

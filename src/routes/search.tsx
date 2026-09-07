@@ -241,7 +241,7 @@ export default function SearchPage() {
                 <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <li>Giá hiệu dụng là ước tính sau voucher và cashback.</li>
                   <li>Điều kiện cashback khác nhau theo từng đơn vị cung cấp.</li>
-                  <li>Cashback ID không xử lý giao dịch hay giữ tiền của bạn.</li>
+                  <li>cashback.id.vn không xử lý giao dịch hay giữ tiền của bạn.</li>
                 </ul>
                 <Link
                   to="/how-it-works"

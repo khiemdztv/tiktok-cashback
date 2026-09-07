@@ -21,7 +21,7 @@ export default function AboutPage() {
       <div className="container-page grid gap-12 py-14 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6 text-[15px] leading-relaxed text-muted-foreground">
           <p>
-            Cashback ID ra đời để việc khám phá chương trình cashback, voucher, khuyến mãi và lựa
+            cashback.id.vn ra đời để việc khám phá chương trình cashback, voucher, khuyến mãi và lựa
             chọn mua hàng tốt hơn trở nên dễ dàng — mà bạn không phải mở hàng chục website khác nhau
             trước mỗi lần thanh toán.
           </p>
@@ -31,7 +31,7 @@ export default function AboutPage() {
             vào một nơi, trình bày rõ ràng, kèm điều kiện áp dụng và thời điểm cập nhật.
           </p>
           <p>
-            Chúng tôi tin rằng thông tin minh bạch quan trọng hơn con số hấp dẫn. Vì vậy Cashback ID
+            Chúng tôi tin rằng thông tin minh bạch quan trọng hơn con số hấp dẫn. Vì vậy cashback.id.vn
             luôn ghi rõ tỷ lệ là “lên đến”, nêu điều kiện đi kèm và nhắc bạn kiểm tra lại trước khi
             mua.
           </p>
@@ -39,7 +39,7 @@ export default function AboutPage() {
           <div className="rounded-3xl bg-surface p-8">
             <p className="text-sm font-semibold uppercase tracking-wide text-primary">Tầm nhìn</p>
             <p className="mt-3 text-xl font-bold text-foreground">
-              Không cần nhớ mình phải kiểm tra cashback ở đâu. Chỉ cần nhớ Cashback ID.
+              Không cần nhớ mình phải kiểm tra cashback ở đâu. Chỉ cần nhớ cashback.id.vn.
             </p>
           </div>
         </div>

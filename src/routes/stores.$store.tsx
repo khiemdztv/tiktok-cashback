@@ -145,7 +145,7 @@ export default function StoreDetailPage() {
             <div className="flex items-start gap-3">
               <Info className="mt-0.5 size-5 shrink-0 text-primary" />
               <p className="text-sm text-muted-foreground">
-                Cashback được cung cấp bởi đối tác/chương trình tương ứng. Cashback ID chỉ tổng hợp
+                Cashback được cung cấp bởi đối tác/chương trình tương ứng. cashback.id.vn chỉ tổng hợp
                 và cung cấp thông tin.
               </p>
             </div>

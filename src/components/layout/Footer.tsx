@@ -5,7 +5,7 @@ import { FACEBOOK_URL, ZALO_URL, FacebookIcon, ZaloIcon } from "./SocialLinks";
 
 const columns = [
   {
-    title: "Cashback ID",
+    title: "cashback.id.vn",
     links: [
       { label: "Về chúng tôi", to: "/about" as const },
       { label: "Cách hoạt động", to: "/how-it-works" as const },

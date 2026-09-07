@@ -20,15 +20,15 @@ const steps = [
 
 const faqs = [
   {
-    q: "Cashback ID có giữ tiền của tôi không?",
-    a: "Không. Cashback ID không giữ tiền, không xử lý thanh toán và không trực tiếp chi trả cashback.",
+    q: "cashback.id.vn có giữ tiền của tôi không?",
+    a: "Không. cashback.id.vn không giữ tiền, không xử lý thanh toán và không trực tiếp chi trả cashback.",
   },
   {
     q: "Vì sao tỷ lệ cashback thay đổi?",
     a: "Các đối tác điều chỉnh tỷ lệ theo chiến dịch, ngành hàng và thời điểm. Chúng tôi cập nhật thông tin thường xuyên nhưng bạn nên kiểm tra lại điều kiện trước khi mua.",
   },
   {
-    q: "Dùng Cashback ID có mất phí không?",
+    q: "Dùng cashback.id.vn có mất phí không?",
     a: "Không. Việc tra cứu thông tin cashback, voucher và so sánh giá hoàn toàn miễn phí.",
   },
 ];
@@ -39,7 +39,7 @@ export default function HowItWorksPage() {
       <section className="hero-glow border-b border-border">
         <div className="container-page py-16 text-center md:py-20">
           <h1 className="mx-auto max-w-3xl text-4xl font-extrabold md:text-5xl">
-            Cashback ID hoạt động như thế nào?
+            cashback.id.vn hoạt động như thế nào?
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
             Bốn bước đơn giản để bạn không bỏ lỡ khoản tiết kiệm nào.
@@ -63,7 +63,7 @@ export default function HowItWorksPage() {
 
         <div className="mt-10 rounded-3xl bg-surface p-8 text-center md:p-12">
           <p className="mx-auto max-w-2xl text-lg font-medium">
-            Cashback ID không giữ tiền của bạn và không trực tiếp xử lý cashback.
+            cashback.id.vn không giữ tiền của bạn và không trực tiếp xử lý cashback.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground">
             Chúng tôi tổng hợp thông tin từ các chương trình cashback, voucher và giá bán để bạn dễ
