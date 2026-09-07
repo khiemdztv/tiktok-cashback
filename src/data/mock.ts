@@ -297,6 +297,53 @@ export const stores: Store[] = [
 
 export const storeBySlug = (slug: string) => stores.find((s) => s.slug === slug);
 
+export const platformDomains: Record<string, string[]> = {
+  shopee: ["shopee.vn"],
+  lazada: ["lazada.vn"],
+  tiki: ["tiki.vn"],
+  "tiktok-shop": ["shop.tiktok.com", "tiktokshop.com"],
+  agoda: ["agoda.com"],
+  "booking-com": ["booking.com"],
+  traveloka: ["traveloka.com"],
+  nike: ["nike.com", "nike.com.vn"],
+  adidas: ["adidas.com", "adidas.com.vn"],
+  samsung: ["samsung.com", "samsung.com.vn"],
+  "fpt-shop": ["fptshop.com.vn"],
+  canva: ["canva.com"],
+  grab: ["grab.com"],
+};
+
+export const platformCashbackRates: Record<string, number> = Object.fromEntries(
+  stores.map((store) => [store.slug, store.maxRate]),
+);
+
+export function getCashbackForPlatform(slug: string, category?: string) {
+  const store = storeBySlug(slug);
+  if (!store) return platformCashbackRates[slug] ?? 0;
+  if (!category) return store.maxRate;
+
+  const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("vi");
+  const normalizedCategory = normalize(category);
+  const categoryPatterns: Array<[RegExp, RegExp]> = [
+    [/phu kien/, /phu kien|op lung|case|cu sac|sac du phong|tai nghe|day cap|cable/],
+    [/dien thoai|dien tu/, /dien thoai|iphone|ipad|galaxy|smartphone|samsung|may tinh bang/],
+    [/laptop/, /laptop|macbook|may tinh/],
+    [/thoi trang|sneaker/, /thoi trang|quan ao|giay|sneaker|nike|adidas/],
+    [/lam dep/, /lam dep|my pham|skincare|makeup/],
+    [/nha cua|gia dung/, /nha cua|gia dung|noi that/],
+    [/khach san|cho nghi/, /khach san|hotel|resort|homestay|cho nghi/],
+    [/ve may bay/, /ve may bay|chuyen bay|flight/],
+    [/grabfood/, /grabfood|do an|giao do an/],
+    [/grabcar/, /grabcar|dat xe/],
+  ];
+  const tier = store.tiers.find((item) => {
+    const normalizedLabel = normalize(item.label);
+    if (normalizedCategory.includes(normalizedLabel)) return true;
+    return categoryPatterns.some(([labelPattern, queryPattern]) => labelPattern.test(normalizedLabel) && queryPattern.test(normalizedCategory));
+  });
+  return tier?.rate ?? store.maxRate;
+}
+
 export const categories: { icon: string; label: string; slug: string }[] = [
   { icon: "🛒", label: "Mua sắm", slug: "mua-sam" },
   { icon: "✈️", label: "Du lịch", slug: "du-lich" },

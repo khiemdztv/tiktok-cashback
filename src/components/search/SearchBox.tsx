@@ -1,5 +1,5 @@
 import { useNavigate } from "@/src/lib/navigation";
-import { Link2, Search } from "lucide-react";
+import { Link2, Search, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/src/components/ui/button";
@@ -19,8 +19,16 @@ export function SearchBox({
 }) {
   const [q, setQ] = useState(defaultValue);
   const [focused, setFocused] = useState(false);
+  const [exampleIndex, setExampleIndex] = useState(0);
   const navigate = useNavigate();
   useEffect(() => setQ(defaultValue), [defaultValue]);
+
+  const smartExamples = ["iPhone 15", "Khách sạn Đà Nẵng", "Nike Air Force 1"];
+  useEffect(() => {
+    if (q || focused) return;
+    const timer = window.setInterval(() => setExampleIndex((current) => (current + 1) % smartExamples.length), 2600);
+    return () => window.clearInterval(timer);
+  }, [focused, q, smartExamples.length]);
 
   const suggestions = q.trim()
     ? popularSearches.filter((s) => s.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 5)
@@ -51,14 +59,17 @@ export function SearchBox({
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 150)}
-          placeholder="Bạn đang muốn mua gì?"
+          placeholder={`Thử “${smartExamples[exampleIndex]}”`}
           className={cn(
             "min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground",
             size === "lg" ? "h-12 text-base md:text-lg" : "h-10 text-sm",
           )}
         />
+        <span className="hidden items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-accent-foreground sm:flex">
+          <Sparkles className="size-3" /> AI
+        </span>
         <Button type="submit" className="rounded-xl" size={size === "lg" ? "lg" : "default"}>
-          Tìm kiếm
+          <Sparkles className="size-4 sm:hidden" /> Tìm kiếm
         </Button>
       </form>
 
