@@ -4,7 +4,7 @@ import { Home, Link2, Percent, Scale, Store, Ticket } from "lucide-react";
 const items = [
   { to: "/", label: "Trang chủ", icon: Home, exact: true },
   { to: "/cashback", label: "Cashback", icon: Percent, exact: false },
-  { to: "/vouchers", label: "Voucher", icon: Ticket, exact: false },
+  { to: "/shopee-vouchers", label: "Mã Shopee", icon: Ticket, exact: false },
   { to: "/stores", label: "Cửa hàng", icon: Store, exact: false },
   { to: "/compare", label: "So sánh", icon: Scale, exact: false },
   { to: "/tools", label: "Công cụ", icon: Link2, exact: false },

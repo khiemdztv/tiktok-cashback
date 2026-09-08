@@ -1,6 +1,27 @@
 import { parseShopeeUrl, expandShopeeUrl } from "./shopee-product";
 
-const AFFILIATE_ID = process.env.SHOPEE_AFFILIATE_ID || "";
+function getAffiliateId() {
+  return process.env.SHOPEE_AFFILIATE_ID || "";
+}
+
+export function isShopeeUrl(value: string): boolean {
+  try {
+    const hostname = new URL(value).hostname.toLowerCase();
+    return hostname === "shopee.vn" || hostname.endsWith(".shopee.vn") || hostname === "s.shopee.vn";
+  } catch {
+    return false;
+  }
+}
+
+export function buildShopeeCampaignAffiliateLink(originLink: string, subId?: string): string {
+  if (!isShopeeUrl(originLink)) throw new Error("Đường dẫn nhận mã phải thuộc Shopee Việt Nam.");
+  const affiliateId = getAffiliateId();
+  if (!affiliateId) return originLink;
+
+  const params = new URLSearchParams({ origin_link: originLink, affiliate_id: affiliateId });
+  if (subId) params.set("sub_id", subId);
+  return `https://s.shopee.vn/an_redir?${params.toString()}`;
+}
 
 /**
  * Build Shopee affiliate link using Shopee's official an_redir endpoint.
@@ -13,19 +34,14 @@ export function buildShopeeAffiliateLink(
   subId?: string
 ): string {
   const originLink = `https://shopee.vn/product/${shopId}/${itemId}`;
-  const params = new URLSearchParams({
-    origin_link: originLink,
-    affiliate_id: AFFILIATE_ID,
-  });
-  if (subId) params.set("sub_id", subId);
-  return `https://s.shopee.vn/an_redir?${params.toString()}`;
+  return buildShopeeCampaignAffiliateLink(originLink, subId);
 }
 
 export async function convertToAffiliateLink(
   productUrl: string,
   subId?: string
 ): Promise<{ shortLink: string; longLink: string } | null> {
-  if (!AFFILIATE_ID) {
+  if (!getAffiliateId()) {
     console.error("SHOPEE_AFFILIATE_ID not configured");
     return null;
   }

@@ -1,19 +1,36 @@
 import puppeteer, { Browser, Page } from "puppeteer";
+import chromium from "@sparticuz/chromium";
 
 let browserPromise: Promise<Browser> | null = null;
 
-async function getBrowser(): Promise<Browser> {
+export async function getShopeeBrowser(): Promise<Browser> {
   if (!browserPromise) {
-    browserPromise = puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-blink-features=AutomationControlled",
-        "--disable-features=IsolateOrigins,site-per-process",
-      ],
-    });
+    const browserlessEndpoint = process.env.BROWSERLESS_WS_ENDPOINT;
+    browserPromise = (async () => {
+      if (browserlessEndpoint) return puppeteer.connect({ browserWSEndpoint: browserlessEndpoint });
+      const serverless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+      return puppeteer.launch({
+        headless: serverless ? "shell" : true,
+        executablePath:
+          process.env.PUPPETEER_EXECUTABLE_PATH || (serverless ? await chromium.executablePath() : undefined),
+        args: [
+          ...(serverless ? chromium.args : []),
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-blink-features=AutomationControlled",
+          "--disable-features=IsolateOrigins,site-per-process",
+        ],
+      });
+    })();
+    const currentBrowserPromise = browserPromise;
+    void currentBrowserPromise
+      .then((browser) => browser.once("disconnected", () => {
+        if (browserPromise === currentBrowserPromise) browserPromise = null;
+      }))
+      .catch(() => {
+        if (browserPromise === currentBrowserPromise) browserPromise = null;
+      });
   }
   return browserPromise;
 }
@@ -39,7 +56,7 @@ export async function scrapeShopeeProduct(
 ): Promise<ShopeeScrapedProduct | null> {
   let page: Page | null = null;
   try {
-    const browser = await getBrowser();
+    const browser = await getShopeeBrowser();
     page = await browser.newPage();
 
     // Set realistic viewport and UA

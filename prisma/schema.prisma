@@ -38,3 +38,32 @@ model Link {
   clicks       Int      @default(0)
   createdAt    DateTime @default(now())
 }
+
+model ShopeeVoucher {
+  id               String    @id @default(uuid())
+  code             String?
+  title            String
+  discount         String
+  discountValue    Int       @default(0)
+  discountType     String    @default("fixed")
+  minSpend         Int       @default(0)
+  maxDiscount      Int       @default(0)
+  campaign         String?
+  category         String?
+  claimUrl         String
+  affiliateUrl     String
+  startDate        DateTime?
+  endDate          DateTime?
+  isActive         Boolean   @default(true)
+  source           String    @default("scraper")
+  usageLimit       Int?
+  usageCount       Int       @default(0)
+  shopeeVoucherId  String?   @unique
+  imageUrl         String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([campaign])
+  @@index([isActive, endDate])
+  @@index([discountType])
+}

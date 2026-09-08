@@ -9,6 +9,7 @@ import { Input } from "@/src/components/ui/input";
 const nav = [
   { to: "/cashback", label: "Khám phá" },
   { to: "/cashback", label: "Cashback" },
+  { to: "/shopee-vouchers", label: "Mã Shopee" },
   { to: "/vouchers", label: "Voucher" },
   { to: "/stores", label: "Cửa hàng" },
   { to: "/compare", label: "So sánh giá" },
@@ -72,7 +73,7 @@ export function Header() {
 
           <Link
             to="/how-it-works"
-            className="hidden rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground lg:block"
+            className="hidden whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground 2xl:block"
           >
             Cách hoạt động
           </Link>

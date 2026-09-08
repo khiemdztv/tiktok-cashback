@@ -616,6 +616,15 @@ export const popularSearches = [
 
 export const searchExamples = ["Shopee", "Nike Air Force 1", "Agoda", "iPhone", "Booking", "Canva"];
 
+export const shopeeCampaigns = [
+  { slug: "hang-ngay", name: "Hàng ngày", url: "https://shopee.vn/m/ma-giam-gia", month: null, day: null },
+  { slug: "9-9", name: "Siêu Sale 9.9", url: "https://shopee.vn/m/9-9", month: 9, day: 9 },
+  { slug: "10-10", name: "Sale 10.10", url: "https://shopee.vn/m/10-10", month: 10, day: 10 },
+  { slug: "11-11", name: "Siêu Sale 11.11", url: "https://shopee.vn/m/11-11", month: 11, day: 11 },
+  { slug: "12-12", name: "Sale 12.12", url: "https://shopee.vn/m/12-12", month: 12, day: 12 },
+  { slug: "flash-sale", name: "Flash Sale", url: "https://shopee.vn/flash_sale", month: null, day: null },
+] as const;
+
 export type PriceRow = {
   storeSlug: string;
   price: number;

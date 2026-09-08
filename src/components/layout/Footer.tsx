@@ -16,6 +16,7 @@ const columns = [
     title: "Khám phá",
     links: [
       { label: "Cashback", to: "/cashback" as const },
+      { label: "Mã giảm giá Shopee", to: "/shopee-vouchers" as const },
       { label: "Voucher", to: "/vouchers" as const },
       { label: "Cửa hàng", to: "/stores" as const },
       { label: "So sánh giá", to: "/compare" as const },
