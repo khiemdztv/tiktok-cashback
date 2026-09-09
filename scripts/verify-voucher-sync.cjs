@@ -8,7 +8,9 @@ require("@next/env").loadEnvConfig(process.cwd());
   }
   const secret = process.env.CRON_SECRET || process.env.ADMIN_PASSWORD;
   if (!secret) throw new Error("Missing local cron/admin credential");
-  const response = await fetch(new URL("/api/cron/shopee-vouchers", origin), {
+  const endpoint = new URL("/api/cron/shopee-vouchers", origin);
+  if (process.argv.includes("--diagnostics")) endpoint.searchParams.set("diagnostics", "1");
+  const response = await fetch(endpoint, {
     headers: { authorization: `Bearer ${secret}` },
     signal: AbortSignal.timeout(150_000),
   });
