@@ -7,10 +7,10 @@ import { invalidateVoucherCache } from "./shopee-voucher-cache";
 
 export const SHOPEE_CAMPAIGN_URLS: Record<string, string> = {
   "hang-ngay": "https://shopee.vn/m/ma-giam-gia",
-  "9-9": "https://shopee.vn/m/9-9",
-  "10-10": "https://shopee.vn/m/10-10",
-  "11-11": "https://shopee.vn/m/11-11",
-  "12-12": "https://shopee.vn/m/12-12",
+  "9-9": "https://shopee.vn/m/ma-giam-gia",
+  "10-10": "https://shopee.vn/m/ma-giam-gia",
+  "11-11": "https://shopee.vn/m/ma-giam-gia",
+  "12-12": "https://shopee.vn/m/ma-giam-gia",
   "flash-sale": "https://shopee.vn/flash_sale",
 };
 
@@ -78,7 +78,7 @@ export function activeShopeeCampaigns(now = new Date()) {
     const distance = Math.abs(Date.UTC(current.year, month - 1, day) - todayNumber) / 86_400_000;
     return distance <= 3 ? [slug] : [];
   });
-  return ["hang-ngay", "flash-sale", ...campaignSlugs];
+  return campaignSlugs.length > 0 ? ["flash-sale", ...campaignSlugs] : ["hang-ngay", "flash-sale"];
 }
 
 function parseVoucherText(rawText: string, href: string, campaign: string, sourceId?: string): ScrapedVoucher | null {
@@ -121,6 +121,117 @@ function parseVoucherText(rawText: string, href: string, campaign: string, sourc
   };
 }
 
+type ShopeeApiVoucher = {
+  voucher?: {
+    voucher_identifier?: { promotion_id?: number | string; voucher_code?: string };
+    reward_info?: {
+      reward_type?: number;
+      min_spend?: number;
+      value?: number | null;
+      percentage?: number | null;
+      cap?: number | null;
+    };
+    time_info?: { end_time?: number; has_expired?: boolean };
+    quota_info?: { fully_redeemed?: boolean; fully_used?: boolean; disabled?: boolean };
+    ui_info?: {
+      icon_hash?: string;
+      icon_text?: string;
+      customised_labels?: string[] | null;
+      composed_ui_info_for_fsv?: {
+        composed_discount_value?: number | null;
+        composed_discount_cap?: number | null;
+        int_min_spend_fsv_ui_only?: number | null;
+      } | null;
+    };
+  };
+  assets?: { shop_name?: string | null; redirect_url?: string | null };
+};
+
+type ShopeeVoucherApiPayload = {
+  data?: Array<{ vouchers?: ShopeeApiVoucher[] }>;
+};
+
+const SHOPEE_MONEY_SCALE = 100_000;
+
+function toVnd(value?: number | null) {
+  return Math.max(0, Math.round((Number(value) || 0) / SHOPEE_MONEY_SCALE));
+}
+
+function compactMoney(value: number) {
+  if (value >= 1_000_000) return `${Number((value / 1_000_000).toFixed(1))}TR`;
+  if (value >= 1_000) return `${Number((value / 1_000).toFixed(0))}K`;
+  return `${value.toLocaleString("vi-VN")}Đ`;
+}
+
+export function parseShopeeVoucherPayload(
+  payload: unknown,
+  campaign: string,
+  campaignUrl: string,
+): ScrapedVoucher[] {
+  const collections = (payload as ShopeeVoucherApiPayload | null)?.data;
+  if (!Array.isArray(collections)) return [];
+
+  return collections.flatMap((collection) => (collection.vouchers || []).flatMap((entry) => {
+    const voucher = entry.voucher;
+    const identifier = voucher?.voucher_identifier;
+    const reward = voucher?.reward_info;
+    const time = voucher?.time_info;
+    const quota = voucher?.quota_info;
+    if (
+      identifier?.promotion_id == null ||
+      time?.has_expired ||
+      quota?.fully_redeemed ||
+      quota?.fully_used ||
+      quota?.disabled
+    ) return [];
+
+    const ui = voucher?.ui_info;
+    const composed = ui?.composed_ui_info_for_fsv;
+    const isFreeship = reward?.reward_type === 2;
+    const percentage = Math.max(0, Number(reward?.percentage) || 0);
+    const fixedValue = toVnd(reward?.value);
+    const composedValue = toVnd(composed?.composed_discount_value);
+    const maxDiscount = toVnd(reward?.cap) || toVnd(composed?.composed_discount_cap) || composedValue;
+    const minSpend = toVnd(reward?.min_spend) || toVnd(composed?.int_min_spend_fsv_ui_only);
+    const discountType: ScrapedVoucher["discountType"] = isFreeship
+      ? "freeship"
+      : percentage > 0
+        ? "percent"
+        : "fixed";
+    const discountValue = discountType === "percent" ? percentage : discountType === "fixed" ? fixedValue : 0;
+    const discount = discountType === "freeship"
+      ? `FREESHIP${maxDiscount ? ` ${compactMoney(maxDiscount)}` : ""}`
+      : discountType === "percent"
+        ? `GIẢM ${percentage}%`
+        : `GIẢM ${compactMoney(fixedValue)}`;
+    const labels = (ui?.customised_labels || []).filter(Boolean).join(" • ");
+    const shopName = entry.assets?.shop_name?.trim();
+    const title = `${shopName ? `${shopName}: ` : ""}${discount}${labels ? ` • ${labels}` : ""}`;
+    const iconHash = ui?.icon_hash?.trim();
+    const rawCode = identifier.voucher_code?.trim().toUpperCase() || null;
+    const redirectUrl = entry.assets?.redirect_url;
+    const claimUrl = redirectUrl && isShopeeUrl(redirectUrl) ? redirectUrl : campaignUrl;
+
+    return [{
+      shopeeVoucherId: String(identifier.promotion_id),
+      code: rawCode?.startsWith("FSV-") ? null : rawCode,
+      title,
+      discount,
+      discountValue,
+      discountType,
+      minSpend,
+      maxDiscount,
+      campaign,
+      category: null,
+      claimUrl,
+      imageUrl: iconHash
+        ? iconHash.startsWith("http") ? iconHash : `https://down-vn.img.susercontent.com/file/${iconHash}`
+        : null,
+      endDate: time?.end_time ? new Date(time.end_time * 1_000) : null,
+    }];
+  }));
+}
+
 export async function parseVoucherCards(page: Page, campaign = "hang-ngay"): Promise<ScrapedVoucher[]> {
   const rawCards = await page.evaluate(() => {
     const selectors = [
@@ -161,19 +272,32 @@ export async function scrapeShopeeVouchers(campaignSlug = "hang-ngay"): Promise<
 
   const browser = await getShopeeBrowser();
   const page = await browser.newPage();
+  const apiPayloads: Array<Promise<unknown>> = [];
+  const collectVoucherResponse = (response: { url(): string; json(): Promise<unknown> }) => {
+    if (response.url().includes("/api/v1/microsite/get_vouchers_by_collections")) {
+      apiPayloads.push(response.json().catch(() => null));
+    }
+  };
+  page.on("response", collectVoucherResponse);
   try {
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
     );
     await page.setViewport({ width: 1440, height: 1200 });
     await page.goto(campaignUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
-    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    await new Promise((resolve) => setTimeout(resolve, 6_000));
     for (let index = 0; index < 5; index += 1) {
       await page.evaluate(() => window.scrollBy(0, Math.max(window.innerHeight, 900)));
       await new Promise((resolve) => setTimeout(resolve, 700));
     }
+    const apiVouchers = (await Promise.all(apiPayloads))
+      .flatMap((payload) => parseShopeeVoucherPayload(payload, campaignSlug, campaignUrl));
+    if (apiVouchers.length > 0) {
+      return Array.from(new Map(apiVouchers.map((voucher) => [voucher.shopeeVoucherId, voucher])).values());
+    }
     return parseVoucherCards(page, campaignSlug);
   } finally {
+    page.off("response", collectVoucherResponse);
     await page.close().catch(() => undefined);
   }
 }

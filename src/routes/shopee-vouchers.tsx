@@ -10,16 +10,32 @@ import { Link } from "@/src/lib/navigation";
 
 type ApiResponse = { vouchers: ShopeeVoucherView[]; total: number; error?: string };
 
-function nextCampaignDate() {
+function featuredCampaign() {
   const now = new Date();
+  const vietnamParts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    }).formatToParts(now).filter((part) => part.type !== "literal").map((part) => [part.type, Number(part.value)]),
+  ) as { year: number; month: number; day: number };
+  const today = Date.UTC(vietnamParts.year, vietnamParts.month - 1, vietnamParts.day);
   const dates = shopeeCampaigns
     .filter((item) => item.month && item.day)
     .map((item) => {
-      const date = new Date(now.getFullYear(), item.month! - 1, item.day!, 23, 59, 59);
-      if (date.getTime() < now.getTime()) date.setFullYear(date.getFullYear() + 1);
-      return { ...item, date };
+      let year = vietnamParts.year;
+      let eventDay = Date.UTC(year, item.month! - 1, item.day!);
+      const isLive = eventDay === today;
+      if (eventDay < today) {
+        year += 1;
+        eventDay = Date.UTC(year, item.month! - 1, item.day!);
+      }
+      const month = String(item.month).padStart(2, "0");
+      const day = String(item.day).padStart(2, "0");
+      return { ...item, isLive, date: new Date(`${year}-${month}-${day}T00:00:00+07:00`), eventDay };
     })
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
+    .sort((a, b) => Number(b.isLive) - Number(a.isLive) || a.eventDay - b.eventDay);
   return dates[0];
 }
 
@@ -36,7 +52,7 @@ export default function ShopeeVouchersPage() {
   const [campaign, setCampaign] = useState("");
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("newest");
-  const upcoming = useMemo(nextCampaignDate, []);
+  const featured = useMemo(featuredCampaign, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -74,7 +90,13 @@ export default function ShopeeVouchersPage() {
             <p className="mt-4 max-w-2xl text-white/85">Chọn mã phù hợp, bấm thu thập và nhận trực tiếp trên Shopee. Có thể kết hợp voucher với cashback khi chương trình cho phép.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <span className="rounded-xl bg-white px-4 py-2 font-bold text-[#d93f22]">{total} mã đang hoạt động</span>
-              {upcoming && <span className="rounded-xl bg-black/15 px-4 py-2 font-semibold">{upcoming.name}: <CountdownTimer endDate={upcoming.date} className="ml-1" /></span>}
+              {featured && (
+                <span className="rounded-xl bg-black/15 px-4 py-2 font-semibold">
+                  {featured.isLive
+                    ? `${featured.name} đang diễn ra`
+                    : <>{featured.name}: <CountdownTimer endDate={featured.date} className="ml-1" /></>}
+                </span>
+              )}
             </div>
           </div>
         </div>

@@ -12,7 +12,10 @@ let running = false;
 
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+  const isAuthorized = secret
+    ? request.headers.get("authorization") === `Bearer ${secret}`
+    : process.env.VERCEL === "1" && request.headers.get("user-agent") === "vercel-cron/1.0";
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (running) return NextResponse.json({ error: "Đồng bộ voucher đang chạy." }, { status: 409 });
@@ -30,7 +33,7 @@ export async function GET(request: NextRequest) {
       }
     }
     const deactivated = await deactivateExpiredVouchers();
-    const successful = results.filter((result) => !("error" in result)).length;
+    const successful = results.filter((result) => !("error" in result) && result.found > 0).length;
     return NextResponse.json({
       success: successful > 0,
       startedAt,
