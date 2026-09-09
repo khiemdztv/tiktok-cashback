@@ -232,6 +232,61 @@ export function parseShopeeVoucherPayload(
   }));
 }
 
+async function fetchStructuredVoucherPayload(page: Page): Promise<unknown> {
+  return page.evaluate(async () => {
+    const headers: Record<string, string> = {
+      "accept": "application/json",
+      "content-type": "application/json",
+      "x-api-source": "pc",
+      "x-shopee-language": "vi",
+    };
+    const csrfToken = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/)?.[1];
+    if (csrfToken) headers["x-csrftoken"] = decodeURIComponent(csrfToken);
+
+    const pageResponse = await fetch(
+      "/api/v4/pagebuilder/get_csr_page?page_url=ma-giam-gia&platform=4&timestamp=0",
+      { headers, credentials: "include" },
+    );
+    if (!pageResponse.ok) return null;
+    const pageBuilder = await pageResponse.json();
+    const pageId = Number(pageBuilder?.data?.meta?.page_id);
+    const components = Array.isArray(pageBuilder?.layout?.component_list)
+      ? pageBuilder.layout.component_list
+      : [];
+    const requests = components.flatMap((component: { id?: number; properties?: string }) => {
+      if (!component.id || !component.properties) return [];
+      try {
+        const properties = JSON.parse(component.properties);
+        const data = Array.isArray(properties)
+          ? properties.find((property: { key?: string }) => property?.key === "data")?.value
+          : null;
+        const collectionId = data?.voucher_collection_id;
+        if (!collectionId) return [];
+        return [{
+          collection_id: String(collectionId),
+          component_type: 1,
+          component_id: component.id,
+          limit: 50,
+          microsite_id: pageId,
+          offset: 0,
+          number_of_vouchers_per_row: 2,
+        }];
+      } catch {
+        return [];
+      }
+    });
+    if (!pageId || requests.length === 0) return null;
+
+    const voucherResponse = await fetch("/api/v1/microsite/get_vouchers_by_collections", {
+      method: "POST",
+      headers,
+      credentials: "include",
+      body: JSON.stringify({ voucher_collection_request_list: requests }),
+    });
+    return voucherResponse.ok ? voucherResponse.json() : null;
+  });
+}
+
 export async function parseVoucherCards(page: Page, campaign = "hang-ngay"): Promise<ScrapedVoucher[]> {
   const rawCards = await page.evaluate(() => {
     const selectors = [
@@ -285,7 +340,13 @@ export async function scrapeShopeeVouchers(campaignSlug = "hang-ngay"): Promise<
     );
     await page.setViewport({ width: 1440, height: 1200 });
     await page.goto(campaignUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
-    await new Promise((resolve) => setTimeout(resolve, 6_000));
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
+    if (campaignSlug !== "flash-sale") {
+      const structuredPayload = await fetchStructuredVoucherPayload(page).catch(() => null);
+      const structuredVouchers = parseShopeeVoucherPayload(structuredPayload, campaignSlug, campaignUrl);
+      if (structuredVouchers.length > 0) return structuredVouchers;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 4_500));
     for (let index = 0; index < 5; index += 1) {
       await page.evaluate(() => window.scrollBy(0, Math.max(window.innerHeight, 900)));
       await new Promise((resolve) => setTimeout(resolve, 700));
