@@ -4,7 +4,7 @@
   "crons": [
     {
       "path": "/api/cron/shopee-vouchers",
-      "schedule": "0 0 * * *"
+      "schedule": "5 17 * * *"
     }
   ]
 }
