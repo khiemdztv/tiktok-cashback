@@ -78,7 +78,7 @@ export function activeShopeeCampaigns(now = new Date()) {
     const distance = Math.abs(Date.UTC(current.year, month - 1, day) - todayNumber) / 86_400_000;
     return distance <= 3 ? [slug] : [];
   });
-  return campaignSlugs.length > 0 ? ["flash-sale", ...campaignSlugs] : ["hang-ngay", "flash-sale"];
+  return campaignSlugs.length > 0 ? campaignSlugs : ["hang-ngay"];
 }
 
 function parseVoucherText(rawText: string, href: string, campaign: string, sourceId?: string): ScrapedVoucher | null {
