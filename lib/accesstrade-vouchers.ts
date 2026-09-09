@@ -89,7 +89,7 @@ export async function fetchAccessTradeVouchers(campaign: string): Promise<Scrape
   const vouchers = new Map<string, ScrapedVoucher>();
   for (let page = 1; page <= 3; page += 1) {
     const url = new URL("https://api.accesstrade.vn/v1/offers_informations");
-    url.search = new URLSearchParams({ domain: "shopee.vn", status: "1", coupon: "1", limit: "100", page: String(page) }).toString();
+    url.search = new URLSearchParams({ domain: "shopee.vn", status: "1", limit: "100", page: String(page) }).toString();
     const response = await fetch(url, {
       headers: { Authorization: `Token ${key}` },
       signal: AbortSignal.timeout(15_000),
