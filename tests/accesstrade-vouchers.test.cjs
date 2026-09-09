@@ -23,7 +23,7 @@ test("normalizes provider VND values without Shopee API money scaling", () => {
   assert.equal(voucher.discountType, "percent");
   assert.equal(voucher.minSpend, 80000);
   assert.equal(voucher.maxDiscount, 0);
-  assert.equal(voucher.affiliateUrl, offer.aff_link);
+  assert.equal(voucher.affiliateUrl, undefined);
   assert.equal(voucher.endDate.toISOString(), "2026-09-09T16:59:59.999Z");
   const fixed = { ...offer, name: "Giảm 6,000 VNĐ cho đơn tối thiểu 249,000 VNĐ", coupons: [{ coupon_code: "RHINVC2" }] };
   const parsed = parseAccessTradeOffers({ data: [fixed] }, "9-9", now)[0];

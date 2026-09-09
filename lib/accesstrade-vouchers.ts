@@ -48,7 +48,6 @@ export function parseAccessTradeOffers(payload: unknown, campaign: string, now =
     const claim = rawClaim && (rawClaim.hostname === "shopee.vn" || rawClaim.hostname.endsWith(".shopee.vn"))
       ? rawClaim
       : new URL("https://shopee.vn/");
-    const affiliate = safeUrl(offer.aff_link);
     const startDate = offerDate(offer.start_time, false);
     const endDate = offerDate(offer.end_time, true);
     if (!endDate || endDate <= now || (startDate && startDate > now)) continue;
@@ -73,7 +72,6 @@ export function parseAccessTradeOffers(payload: unknown, campaign: string, now =
         maxDiscount: amountAfter(text, "tối đa"),
         campaign, category: null,
         claimUrl: claim.href,
-        affiliateUrl: affiliate?.href,
         imageUrl: safeUrl(offer.image)?.href || null,
         startDate, endDate,
         source: "accesstrade",

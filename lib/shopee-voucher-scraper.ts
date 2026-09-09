@@ -401,7 +401,9 @@ export async function saveScrapedVouchers(vouchers: ScrapedVoucher[]) {
       const data = {
         ...voucher,
         endDate: voucher.endDate || campaignEndDate(voucher.campaign),
-        affiliateUrl: voucher.affiliateUrl || buildShopeeCampaignAffiliateLink(voucher.claimUrl, `voucher-${voucher.campaign}`),
+        // AccessTrade is only a voucher data source. Keep every user-facing
+        // redirect on Shopee's own affiliate endpoint.
+        affiliateUrl: buildShopeeCampaignAffiliateLink(voucher.claimUrl, `voucher-${voucher.campaign}`),
         source: voucher.source || "scraper",
         isActive: true,
       };

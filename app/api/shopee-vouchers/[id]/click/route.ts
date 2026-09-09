@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { invalidateVoucherCache } from "@/lib/shopee-voucher-cache";
+import { buildShopeeCampaignAffiliateLink } from "@/lib/shopee-affiliate";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export async function POST(_request: NextRequest, { params }: { params: { id: st
       isActive: true,
       OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
     },
-    select: { id: true, affiliateUrl: true, usageLimit: true, usageCount: true },
+    select: { id: true, claimUrl: true, usageLimit: true, usageCount: true },
   });
   if (!voucher) return NextResponse.json({ error: "Mã giảm giá không tồn tại hoặc đã hết hạn." }, { status: 404 });
   if (voucher.usageLimit !== null && voucher.usageCount >= voucher.usageLimit) {
@@ -23,5 +24,6 @@ export async function POST(_request: NextRequest, { params }: { params: { id: st
     data: { usageCount: { increment: 1 } },
   });
   invalidateVoucherCache();
-  return NextResponse.json({ affiliateUrl: voucher.affiliateUrl }, { headers: { "Cache-Control": "no-store" } });
+  const shopeeUrl = buildShopeeCampaignAffiliateLink(voucher.claimUrl, `voucher-${voucher.id}`);
+  return NextResponse.json({ affiliateUrl: shopeeUrl }, { headers: { "Cache-Control": "no-store" } });
 }

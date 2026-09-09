@@ -1,6 +1,6 @@
 "use client";
 
-import { Lightbulb, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
+import { Lightbulb, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ShopeeVoucherCard, type ShopeeVoucherView } from "@/src/components/cards/ShopeeVoucherCard";
 import { CountdownTimer } from "@/src/components/ui/CountdownTimer";
@@ -24,6 +24,8 @@ export default function ShopeeVouchersPage() {
   const [campaign, setCampaign] = useState("");
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("newest");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [featured, setFeatured] = useState<ReturnType<typeof featuredShopeeCampaign> | null>(null);
 
   useEffect(() => {
@@ -34,11 +36,17 @@ export default function ShopeeVouchersPage() {
   }, []);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     const controller = new AbortController();
     const query = new URLSearchParams({ limit: "60", sort });
     if (type) query.set("type", type);
     if (campaign) query.set("campaign", campaign);
     if (category) query.set("category", category);
+    if (debouncedSearch) query.set("q", debouncedSearch);
     setLoading(true);
     setError("");
     fetch(`/api/shopee-vouchers?${query}`, { signal: controller.signal })
@@ -54,7 +62,7 @@ export default function ShopeeVouchersPage() {
       })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [campaign, category, sort, type]);
+  }, [campaign, category, debouncedSearch, sort, type]);
 
   const categories = Array.from(new Set(vouchers.map((item) => item.category).filter(Boolean))) as string[];
 
@@ -83,6 +91,17 @@ export default function ShopeeVouchersPage() {
 
       <div className="container-page py-8">
         <div className="grid gap-3 rounded-2xl border bg-card p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+          <label className="relative sm:col-span-2 lg:col-span-4">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Tìm theo mã hoặc tên voucher..."
+              aria-label="Tìm kiếm voucher Shopee"
+              className="h-11 w-full rounded-xl border border-input bg-background pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#ee4d2d]/30"
+            />
+          </label>
           <select value={type} onChange={(event) => setType(event.target.value)} aria-label="Lọc theo loại voucher" className="h-11 rounded-xl border border-input bg-background px-3 text-sm">
             {discountTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>

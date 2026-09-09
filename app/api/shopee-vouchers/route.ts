@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getVoucherCache, setVoucherCache } from "@/lib/shopee-voucher-cache";
 
@@ -10,15 +11,25 @@ export async function GET(request: NextRequest) {
     const campaign = params.get("campaign")?.trim();
     const discountType = params.get("type")?.trim();
     const category = params.get("category")?.trim();
+    const search = params.get("q")?.trim().slice(0, 100);
     const sort = params.get("sort") || "newest";
     const limit = Math.min(100, Math.max(1, Number(params.get("limit")) || 30));
-    const cacheKey = [campaign || "", discountType || "", category || "", sort, limit].join("|");
+    const cacheKey = [search || "", campaign || "", discountType || "", category || "", sort, limit].join("|");
     const cached = getVoucherCache<{ vouchers: unknown[]; total: number }>(cacheKey);
     if (cached) return NextResponse.json(cached, { headers: { "X-Cache": "HIT" } });
 
-    const where = {
+    const where: Prisma.ShopeeVoucherWhereInput = {
       isActive: true,
-      OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
+      AND: [
+        { OR: [{ endDate: null }, { endDate: { gte: new Date() } }] },
+        ...(search ? [{
+          OR: [
+            { code: { contains: search, mode: "insensitive" as const } },
+            { title: { contains: search, mode: "insensitive" as const } },
+            { discount: { contains: search, mode: "insensitive" as const } },
+          ],
+        }] : []),
+      ],
       ...(campaign ? { campaign } : {}),
       ...(discountType ? { discountType } : {}),
       ...(category ? { category: { equals: category, mode: "insensitive" as const } } : {}),
