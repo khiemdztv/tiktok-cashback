@@ -64,7 +64,7 @@ export default function ShopeeVouchersPage() {
         <div className="container-page relative py-12 md:py-16">
           <div className="absolute -right-16 -top-20 size-72 rounded-full bg-white/10" />
           <div className="relative max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold"><Sparkles className="size-4" /> Mã Shopee cập nhật liên tục</span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold"><Sparkles className="size-4" /> Mã ưu đãi Shopee</span>
             <h1 className="mt-5 text-3xl font-black tracking-tight md:text-5xl">Săn voucher Shopee, mua sắm tiết kiệm hơn</h1>
             <p className="mt-4 max-w-2xl text-white/85">Chọn mã phù hợp, bấm thu thập và nhận trực tiếp trên Shopee. Có thể kết hợp voucher với cashback khi chương trình cho phép.</p>
             <div className="mt-6 flex flex-wrap gap-3">

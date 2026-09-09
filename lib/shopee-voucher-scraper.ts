@@ -4,6 +4,7 @@ import { prisma } from "./prisma";
 import { buildShopeeCampaignAffiliateLink, isShopeeUrl } from "./shopee-affiliate";
 import { getShopeeBrowser } from "./shopee-scraper";
 import { invalidateVoucherCache } from "./shopee-voucher-cache";
+import { fetchAccessTradeVouchers } from "./accesstrade-vouchers";
 
 export const SHOPEE_CAMPAIGN_URLS: Record<string, string> = {
   "hang-ngay": "https://shopee.vn/m/ma-giam-gia",
@@ -28,6 +29,9 @@ export type ScrapedVoucher = {
   claimUrl: string;
   imageUrl: string | null;
   endDate: Date | null;
+  startDate?: Date | null;
+  source?: "scraper" | "accesstrade";
+  affiliateUrl?: string;
 };
 
 const moneyNumber = (text: string) => {
@@ -388,34 +392,38 @@ export async function scrapeShopeeVouchers(campaignSlug = "hang-ngay"): Promise<
 export async function saveScrapedVouchers(vouchers: ScrapedVoucher[]) {
   let added = 0;
   let updated = 0;
-  for (const voucher of vouchers) {
-    const existing = await prisma.shopeeVoucher.findUnique({
-      where: { shopeeVoucherId: voucher.shopeeVoucherId },
-      select: { id: true },
-    });
-    const data = {
-      ...voucher,
-      endDate: voucher.endDate || campaignEndDate(voucher.campaign),
-      affiliateUrl: buildShopeeCampaignAffiliateLink(voucher.claimUrl, `voucher-${voucher.campaign}`),
-      source: "scraper",
-      isActive: true,
-    };
-    await prisma.shopeeVoucher.upsert({
-      where: { shopeeVoucherId: voucher.shopeeVoucherId },
-      create: data,
-      update: data,
-    });
-    existing ? updated += 1 : added += 1;
+  const existing = new Set((await prisma.shopeeVoucher.findMany({
+    where: { shopeeVoucherId: { in: vouchers.map((voucher) => voucher.shopeeVoucherId) } },
+    select: { shopeeVoucherId: true },
+  })).map((voucher) => voucher.shopeeVoucherId));
+  for (let offset = 0; offset < vouchers.length; offset += 10) {
+    await Promise.all(vouchers.slice(offset, offset + 10).map(async (voucher) => {
+      const data = {
+        ...voucher,
+        endDate: voucher.endDate || campaignEndDate(voucher.campaign),
+        affiliateUrl: voucher.affiliateUrl || buildShopeeCampaignAffiliateLink(voucher.claimUrl, `voucher-${voucher.campaign}`),
+        source: voucher.source || "scraper",
+        isActive: true,
+      };
+      await prisma.shopeeVoucher.upsert({
+        where: { shopeeVoucherId: voucher.shopeeVoucherId }, create: data, update: data,
+      });
+      existing.has(voucher.shopeeVoucherId) ? updated += 1 : added += 1;
+    }));
   }
   invalidateVoucherCache();
   return { added, updated };
 }
 
 export async function syncShopeeCampaign(campaign: string) {
-  const vouchers = await scrapeShopeeVouchers(campaign);
+  const source = process.env.ACCESSTRADE_API_KEY ? "accesstrade" : "scraper";
+  const vouchers = source === "accesstrade"
+    ? await fetchAccessTradeVouchers(campaign)
+    : await scrapeShopeeVouchers(campaign);
   const saved = await saveScrapedVouchers(vouchers);
   let removed = 0;
-  if (vouchers.length > 0) {
+  // The provider feed is paginated; absence from this batch does not mean expired.
+  if (source === "scraper" && vouchers.length > 0) {
     const currentIds = vouchers.map((voucher) => voucher.shopeeVoucherId);
     const result = await prisma.shopeeVoucher.updateMany({
       where: {
@@ -428,7 +436,7 @@ export async function syncShopeeCampaign(campaign: string) {
     });
     removed = result.count;
   }
-  return { campaign, found: vouchers.length, ...saved, removed };
+  return { campaign, source, found: vouchers.length, ...saved, removed };
 }
 
 export async function deactivateExpiredVouchers() {
