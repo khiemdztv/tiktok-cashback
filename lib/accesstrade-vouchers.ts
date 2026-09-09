@@ -42,9 +42,13 @@ export function parseAccessTradeOffers(payload: unknown, campaign: string, now =
   if (!Array.isArray(data)) return [];
   const vouchers = new Map<string, ScrapedVoucher>();
   for (const offer of data) {
-    const claim = safeUrl(offer.link);
+    const domain = offer.domain?.trim().toLowerCase();
+    if (domain !== "shopee.vn" && !domain?.endsWith(".shopee.vn")) continue;
+    const rawClaim = safeUrl(offer.link);
+    const claim = rawClaim && (rawClaim.hostname === "shopee.vn" || rawClaim.hostname.endsWith(".shopee.vn"))
+      ? rawClaim
+      : new URL("https://shopee.vn/");
     const affiliate = safeUrl(offer.aff_link);
-    if (!claim || !(claim.hostname === "shopee.vn" || claim.hostname.endsWith(".shopee.vn"))) continue;
     const startDate = offerDate(offer.start_time, false);
     const endDate = offerDate(offer.end_time, true);
     if (!endDate || endDate <= now || (startDate && startDate > now)) continue;

@@ -34,8 +34,9 @@ test("normalizes provider VND values without Shopee API money scaling", () => {
 test("rejects expired, future, non-Shopee, and unsafe claim URLs", () => {
   for (const change of [
     { end_time: "2026-09-08" }, { start_time: "2026-09-10" }, { end_time: "invalid" },
-    { link: "https://shopee.vn.evil.test/" }, { link: "javascript:alert(1)" },
+    { domain: "shopee.vn.evil.test" }, { domain: "example.com" },
   ]) assert.equal(parseAccessTradeOffers({ data: [{ ...offer, ...change }] }, "9-9", now).length, 0);
+  assert.equal(parseAccessTradeOffers({ data: [{ ...offer, link: "javascript:alert(1)" }] }, "9-9", now)[0].claimUrl, "https://shopee.vn/");
   assert.equal(parseAccessTradeOffers({ data: [offer] }, "9-9", new Date("2026-09-09T17:00:00Z")).length, 0);
 });
 
