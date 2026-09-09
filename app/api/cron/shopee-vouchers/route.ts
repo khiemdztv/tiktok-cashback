@@ -11,10 +11,11 @@ export const maxDuration = 300;
 let running = false;
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  const isAuthorized = secret
-    ? request.headers.get("authorization") === `Bearer ${secret}`
-    : process.env.VERCEL === "1" && request.headers.get("user-agent") === "vercel-cron/1.0";
+  const authorization = request.headers.get("authorization");
+  // Vercel uses CRON_SECRET; an authenticated operator can verify a deployment
+  // with the existing server-only admin credential without adding an admin UI.
+  const isAuthorized = [process.env.CRON_SECRET, process.env.ADMIN_PASSWORD]
+    .some((secret) => Boolean(secret) && authorization === `Bearer ${secret}`);
   if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -36,6 +37,8 @@ export async function GET(request: NextRequest) {
     const successful = results.filter((result) => !("error" in result) && result.found > 0).length;
     return NextResponse.json({
       success: successful > 0,
+      revision: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "local",
+      scheduleConfigured: Boolean(process.env.CRON_SECRET),
       startedAt,
       finishedAt: new Date(),
       campaigns,

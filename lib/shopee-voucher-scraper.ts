@@ -245,9 +245,9 @@ async function fetchStructuredVoucherPayload(page: Page): Promise<unknown> {
 
     const pageResponse = await fetch(
       "/api/v4/pagebuilder/get_csr_page?page_url=ma-giam-gia&platform=4&timestamp=0",
-      { headers, credentials: "include" },
+      { headers, credentials: "include", signal: AbortSignal.timeout(12_000) },
     );
-    if (!pageResponse.ok) return null;
+    if (!pageResponse.ok) throw new Error(`Shopee campaign HTTP ${pageResponse.status}`);
     const pageBuilder = await pageResponse.json();
     const pageId = Number(pageBuilder?.data?.meta?.page_id);
     const components = Array.isArray(pageBuilder?.layout?.component_list)
@@ -275,15 +275,21 @@ async function fetchStructuredVoucherPayload(page: Page): Promise<unknown> {
         return [];
       }
     });
-    if (!pageId || requests.length === 0) return null;
+    if (!pageId || requests.length === 0) {
+      throw new Error(`Shopee campaign: no voucher collections (code ${String(pageBuilder?.error ?? "none")})`);
+    }
 
     const voucherResponse = await fetch("/api/v1/microsite/get_vouchers_by_collections", {
       method: "POST",
       headers,
       credentials: "include",
+      signal: AbortSignal.timeout(12_000),
       body: JSON.stringify({ voucher_collection_request_list: requests }),
     });
-    return voucherResponse.ok ? voucherResponse.json() : null;
+    if (!voucherResponse.ok) throw new Error(`Shopee vouchers HTTP ${voucherResponse.status}`);
+    const payload = await voucherResponse.json();
+    if (payload?.error) throw new Error(`Shopee vouchers error ${String(payload.error)}`);
+    return payload;
   });
 }
 
@@ -327,6 +333,7 @@ export async function scrapeShopeeVouchers(campaignSlug = "hang-ngay"): Promise<
 
   const browser = await getShopeeBrowser();
   const page = await browser.newPage();
+  let structuredError = "No voucher response received";
   const apiPayloads: Array<Promise<unknown>> = [];
   const collectVoucherResponse = (response: { url(): string; json(): Promise<unknown> }) => {
     if (response.url().includes("/api/v1/microsite/get_vouchers_by_collections")) {
@@ -339,10 +346,21 @@ export async function scrapeShopeeVouchers(campaignSlug = "hang-ngay"): Promise<
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
     );
     await page.setViewport({ width: 1440, height: 1200 });
-    await page.goto(campaignUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    await page.setRequestInterception(true);
+    page.on("request", (request) => {
+      const action = ["image", "media", "font"].includes(request.resourceType())
+        ? request.abort()
+        : request.continue();
+      void action.catch(() => undefined);
+    });
+    const navigation = await page.goto(campaignUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    if (navigation && navigation.status() >= 400) throw new Error(`Shopee page HTTP ${navigation.status()}`);
     await new Promise((resolve) => setTimeout(resolve, 1_500));
     if (campaignSlug !== "flash-sale") {
-      const structuredPayload = await fetchStructuredVoucherPayload(page).catch(() => null);
+      const structuredPayload = await fetchStructuredVoucherPayload(page).catch((error: unknown) => {
+        structuredError = error instanceof Error ? error.message.split("\n")[0] : "Shopee request failed";
+        return null;
+      });
       const structuredVouchers = parseShopeeVoucherPayload(structuredPayload, campaignSlug, campaignUrl);
       if (structuredVouchers.length > 0) return structuredVouchers;
     }
@@ -356,7 +374,11 @@ export async function scrapeShopeeVouchers(campaignSlug = "hang-ngay"): Promise<
     if (apiVouchers.length > 0) {
       return Array.from(new Map(apiVouchers.map((voucher) => [voucher.shopeeVoucherId, voucher])).values());
     }
-    return parseVoucherCards(page, campaignSlug);
+    const domVouchers = await parseVoucherCards(page, campaignSlug);
+    if (domVouchers.length === 0) {
+      throw new Error(`Không lấy được voucher: ${structuredError}`);
+    }
+    return domVouchers;
   } finally {
     page.off("response", collectVoucherResponse);
     await page.close().catch(() => undefined);

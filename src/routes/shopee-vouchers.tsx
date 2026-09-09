@@ -1,43 +1,15 @@
 "use client";
 
 import { Lightbulb, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ShopeeVoucherCard, type ShopeeVoucherView } from "@/src/components/cards/ShopeeVoucherCard";
 import { CountdownTimer } from "@/src/components/ui/CountdownTimer";
 import { SiteLayout } from "@/src/components/layout/SiteLayout";
 import { shopeeCampaigns } from "@/src/data/mock";
 import { Link } from "@/src/lib/navigation";
+import { featuredShopeeCampaign } from "@/src/lib/shopee-sale-calendar";
 
 type ApiResponse = { vouchers: ShopeeVoucherView[]; total: number; error?: string };
-
-function featuredCampaign() {
-  const now = new Date();
-  const vietnamParts = Object.fromEntries(
-    new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Ho_Chi_Minh",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-    }).formatToParts(now).filter((part) => part.type !== "literal").map((part) => [part.type, Number(part.value)]),
-  ) as { year: number; month: number; day: number };
-  const today = Date.UTC(vietnamParts.year, vietnamParts.month - 1, vietnamParts.day);
-  const dates = shopeeCampaigns
-    .filter((item) => item.month && item.day)
-    .map((item) => {
-      let year = vietnamParts.year;
-      let eventDay = Date.UTC(year, item.month! - 1, item.day!);
-      const isLive = eventDay === today;
-      if (eventDay < today) {
-        year += 1;
-        eventDay = Date.UTC(year, item.month! - 1, item.day!);
-      }
-      const month = String(item.month).padStart(2, "0");
-      const day = String(item.day).padStart(2, "0");
-      return { ...item, isLive, date: new Date(`${year}-${month}-${day}T00:00:00+07:00`), eventDay };
-    })
-    .sort((a, b) => Number(b.isLive) - Number(a.isLive) || a.eventDay - b.eventDay);
-  return dates[0];
-}
 
 const discountTypes = [
   ["", "Tất cả loại"], ["fixed", "Giảm tiền"], ["percent", "Giảm %"], ["freeship", "Freeship"],
@@ -52,7 +24,14 @@ export default function ShopeeVouchersPage() {
   const [campaign, setCampaign] = useState("");
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("newest");
-  const featured = useMemo(featuredCampaign, []);
+  const [featured, setFeatured] = useState<ReturnType<typeof featuredShopeeCampaign> | null>(null);
+
+  useEffect(() => {
+    const update = () => setFeatured(featuredShopeeCampaign(shopeeCampaigns));
+    update();
+    const timer = window.setInterval(update, 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,7 +52,7 @@ export default function ShopeeVouchersPage() {
         if (reason instanceof DOMException && reason.name === "AbortError") return;
         setError(reason instanceof Error ? reason.message : "Không thể tải voucher.");
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [campaign, category, sort, type]);
 
