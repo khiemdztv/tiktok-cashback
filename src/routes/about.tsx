@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, MapPin, MessageCircle } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 
 import { SiteLayout } from "@/src/components/layout/SiteLayout";
 import { FACEBOOK_URL, ZALO_URL, FacebookIcon, ZaloIcon } from "@/src/components/layout/SocialLinks";
@@ -50,6 +50,9 @@ export default function AboutPage() {
             Bạn là cửa hàng, đối tác cashback hoặc muốn góp ý? Rất mong nhận được tin từ bạn.
           </p>
           <ul className="mt-5 space-y-4 text-sm">
+            <li className="flex items-center gap-3">
+              <Mail className="size-4 text-primary" /><a href="mailto:admin@cashback.id.vn" className="font-medium hover:text-primary">admin@cashback.id.vn</a>
+            </li>
             <li className="flex items-center gap-3">
               <FacebookIcon className="size-4 text-primary" /><a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-primary">Facebook · khiemdztv</a>
             </li>

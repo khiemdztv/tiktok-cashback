@@ -2,9 +2,7 @@
 
 
 import { PageHeader, SiteLayout } from "@/src/components/layout/SiteLayout";
-import { LAST_UPDATED } from "@/src/data/mock";
-
-
+const LEGAL_UPDATED = "13/10/2026";
 
 const sections = [
   {
@@ -31,12 +29,16 @@ const sections = [
     title: "6. Thay đổi điều khoản",
     body: "Chúng tôi có thể cập nhật điều khoản này theo thời gian. Phiên bản mới nhất luôn được đăng tải tại trang này.",
   },
+  {
+    title: "7. Liên hệ",
+    body: "Mọi câu hỏi về điều khoản sử dụng, vui lòng liên hệ admin@cashback.id.vn.",
+  },
 ];
 
 export default function TermsPage() {
   return (
     <SiteLayout>
-      <PageHeader title="Điều khoản sử dụng" subtitle={`Cập nhật lần cuối: ${LAST_UPDATED}`} />
+      <PageHeader title="Điều khoản sử dụng" subtitle={`Cập nhật lần cuối: ${LEGAL_UPDATED}`} />
       <div className="container-page max-w-3xl space-y-8 py-12">
         {sections.map((s) => (
           <section key={s.title}>

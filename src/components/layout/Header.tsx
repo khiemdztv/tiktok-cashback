@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@/src/lib/navigation";
-import { Link2, Menu, Search, X } from "lucide-react";
+import { ArrowUpRight, Link2, Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 
 import { Logo } from "@/src/components/brand/Logo";
@@ -7,10 +7,8 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 
 const nav = [
-  { to: "/cashback", label: "Khám phá" },
   { to: "/cashback", label: "Cashback" },
   { to: "/shopee-vouchers", label: "Mã Shopee" },
-  { to: "/vouchers", label: "Voucher" },
   { to: "/stores", label: "Cửa hàng" },
   { to: "/compare", label: "So sánh giá" },
 ] as const;
@@ -30,17 +28,17 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md">
-      <div className="container-page flex h-16 items-center gap-2 sm:gap-4 lg:gap-6">
-        <Logo />
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-white/90 backdrop-blur-xl">
+      <div className="container-page flex h-[68px] items-center gap-2 sm:gap-4 lg:gap-7">
+        <Logo compact />
 
         <nav className="hidden items-center gap-1 lg:flex">
-          {nav.slice(1).map((item) => (
+          {nav.map((item) => (
             <Link
               key={item.label}
               to={item.to}
               activeProps={{ className: "text-foreground bg-secondary" }}
-              className="rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="rounded-full px-3.5 py-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               {item.label}
             </Link>
@@ -73,13 +71,13 @@ export function Header() {
 
           <Link
             to="/how-it-works"
-            className="hidden whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground 2xl:block"
+            className="hidden whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-foreground 2xl:block"
           >
             Cách hoạt động
           </Link>
 
-          <Button asChild variant="outline" className="hidden rounded-full lg:inline-flex" size="sm">
-            <Link to="/tools"><Link2 className="mr-1.5 size-3.5" /> Công cụ</Link>
+          <Button asChild className="hidden h-9 rounded-full px-4 lg:inline-flex" size="sm">
+            <Link to="/tools"><Link2 className="mr-1 size-3.5" /> Đổi link <ArrowUpRight className="ml-0.5 size-3.5" /></Link>
           </Button>
 
           <Button
@@ -115,7 +113,7 @@ export function Header() {
       {openMenu && (
         <div className="border-t border-border bg-background lg:hidden">
           <nav id="mobile-menu" className="container-page flex flex-col py-2">
-            {nav.slice(1).map((item) => (
+            {nav.map((item) => (
               <Link
                 key={item.label}
                 to={item.to}

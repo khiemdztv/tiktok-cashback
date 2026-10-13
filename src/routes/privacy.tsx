@@ -2,9 +2,7 @@
 
 
 import { PageHeader, SiteLayout } from "@/src/components/layout/SiteLayout";
-import { LAST_UPDATED } from "@/src/data/mock";
-
-
+const LEGAL_UPDATED = "13/10/2026";
 
 const sections = [
   {
@@ -29,14 +27,14 @@ const sections = [
   },
   {
     title: "6. Liên hệ",
-    body: "Mọi câu hỏi về quyền riêng tư, vui lòng liên hệ Facebook hoặc Zalo ở cuối trang.",
+    body: "Mọi câu hỏi về quyền riêng tư, vui lòng liên hệ admin@cashback.id.vn.",
   },
 ];
 
 export default function PrivacyPage() {
   return (
     <SiteLayout>
-      <PageHeader title="Chính sách bảo mật" subtitle={`Cập nhật lần cuối: ${LAST_UPDATED}`} />
+      <PageHeader title="Chính sách bảo mật" subtitle={`Cập nhật lần cuối: ${LEGAL_UPDATED}`} />
       <div className="container-page max-w-3xl space-y-8 py-12">
         {sections.map((s) => (
           <section key={s.title}>
