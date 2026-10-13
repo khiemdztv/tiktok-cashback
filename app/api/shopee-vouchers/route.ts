@@ -14,32 +14,54 @@ export async function GET(request: NextRequest) {
     const search = params.get("q")?.trim().slice(0, 100);
     const sort = params.get("sort") || "newest";
     const limit = Math.min(100, Math.max(1, Number(params.get("limit")) || 30));
-    const cacheKey = [search || "", campaign || "", discountType || "", category || "", sort, limit].join("|");
-    const cached = getVoucherCache<{ vouchers: unknown[]; total: number }>(cacheKey);
-    if (cached) return NextResponse.json(cached, { headers: { "X-Cache": "HIT" } });
+    const cacheKey = [
+      search || "",
+      campaign || "",
+      discountType || "",
+      category || "",
+      sort,
+      limit,
+    ].join("|");
+    const cached = getVoucherCache<{ vouchers: unknown[]; total: number }>(
+      cacheKey,
+    );
+    if (cached)
+      return NextResponse.json(cached, { headers: { "X-Cache": "HIT" } });
 
     const where: Prisma.ShopeeVoucherWhereInput = {
       isActive: true,
       AND: [
         { OR: [{ endDate: null }, { endDate: { gte: new Date() } }] },
-        ...(search ? [{
-          OR: [
-            { code: { contains: search, mode: "insensitive" as const } },
-            { title: { contains: search, mode: "insensitive" as const } },
-            { discount: { contains: search, mode: "insensitive" as const } },
-          ],
-        }] : []),
+        { OR: [{ startDate: null }, { startDate: { lte: new Date() } }] },
+        ...(search
+          ? [
+              {
+                OR: [
+                  { code: { contains: search, mode: "insensitive" as const } },
+                  { title: { contains: search, mode: "insensitive" as const } },
+                  {
+                    discount: {
+                      contains: search,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                ],
+              },
+            ]
+          : []),
       ],
       ...(campaign ? { campaign } : {}),
       ...(discountType ? { discountType } : {}),
-      ...(category ? { category: { equals: category, mode: "insensitive" as const } } : {}),
+      ...(category
+        ? { category: { equals: category, mode: "insensitive" as const } }
+        : {}),
     };
     const orderBy =
       sort === "discount"
         ? [{ discountValue: "desc" as const }, { createdAt: "desc" as const }]
         : sort === "expiring"
           ? [{ endDate: { sort: "asc" as const, nulls: "last" as const } }]
-          : [{ createdAt: "desc" as const }];
+          : [{ updatedAt: "desc" as const }];
 
     const [vouchers, total] = await Promise.all([
       prisma.shopeeVoucher.findMany({ where, orderBy, take: limit }),
@@ -48,12 +70,19 @@ export async function GET(request: NextRequest) {
     const response = { vouchers, total };
     setVoucherCache(cacheKey, response);
     return NextResponse.json(response, {
-      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60", "X-Cache": "MISS" },
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
+        "X-Cache": "MISS",
+      },
     });
   } catch (error) {
     console.error("Shopee voucher API error:", error);
     return NextResponse.json(
-      { vouchers: [], total: 0, error: "Dữ liệu voucher đang được đồng bộ. Vui lòng quay lại sau ít phút." },
+      {
+        vouchers: [],
+        total: 0,
+        error: "Chưa thể tải dữ liệu voucher. Vui lòng thử lại sau.",
+      },
       { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }

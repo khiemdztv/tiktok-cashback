@@ -1,29 +1,27 @@
-import { ExternalLink, Sparkles, Trophy } from "lucide-react";
-
+import { ExternalLink, ShoppingBag } from "lucide-react";
 import { StoreLogo } from "@/src/components/brand/StoreLogo";
-import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
-import { storeBySlug } from "@/src/data/mock";
-import { formatPercent, formatVnd } from "@/src/lib/format";
+import { merchantBySlug } from "@/src/data/catalog";
+import { formatVnd } from "@/src/lib/format";
 import type { SmartSearchResult } from "@/lib/you-api";
-
-export function ProductResultCard({ result, best = false }: { result: SmartSearchResult; best?: boolean }) {
-  const store = storeBySlug(result.platform) ?? {
+export function ProductResultCard({
+  result,
+  best = false,
+}: {
+  result: SmartSearchResult;
+  best?: boolean;
+}) {
+  const store = merchantBySlug(result.platform) ?? {
     name: result.platformName,
-    short: result.platformName.slice(0, 2).toUpperCase(),
-    color: "var(--primary)",
+    short: result.platformName.slice(0, 2),
+    color: "#245d3d",
   };
-
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift">
-      {best && (
-        <Badge className="absolute left-3 top-3 z-10 rounded-full shadow">
-          <Trophy className="mr-1 size-3" /> Giá hiệu dụng tốt nhất
-        </Badge>
-      )}
-      <div className="relative aspect-[16/10] overflow-hidden bg-surface">
-        <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-accent/80 to-surface">
-          <StoreLogo store={store} size="lg" />
+    <article className="panel group relative flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lift">
+      <div className="relative aspect-[16/10] bg-surface">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-primary/25">
+          <ShoppingBag className="size-10" strokeWidth={1} />
+          <StoreLogo store={store} size="sm" />
         </div>
         {result.imageUrl && (
           <img
@@ -31,39 +29,53 @@ export function ProductResultCard({ result, best = false }: { result: SmartSearc
             alt=""
             loading="lazy"
             referrerPolicy="no-referrer"
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
+            className="absolute inset-0 h-full w-full object-contain p-4"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
           />
+        )}
+        {best && (
+          <span className="absolute left-3 top-3 rounded-md bg-white px-2.5 py-1.5 text-[10px] font-semibold text-primary shadow-soft">
+            Giá thấp nhất trong kết quả
+          </span>
         )}
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-xs font-medium">
           <StoreLogo store={store} size="sm" />
-          <div>
-            <p className="text-sm font-semibold">{result.platformName}</p>
-            <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Sparkles className="size-3" /> Kết quả từ You.com
-            </p>
-          </div>
+          {result.platformName}
         </div>
-        <h3 className="mt-4 line-clamp-2 min-h-12 font-semibold leading-6" title={result.productName}>{result.productName}</h3>
-        {result.snippet && <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{result.snippet}</p>}
-        <div className="mt-4 rounded-xl bg-surface p-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="text-xs text-muted-foreground">Giá tìm thấy</span>
-            <strong className="text-lg text-foreground">{result.price === null ? "Chưa rõ" : formatVnd(result.price)}</strong>
-          </div>
-          <div className="mt-2 flex items-baseline justify-between gap-3">
-            <span className="text-xs text-muted-foreground">Sau ưu đãi ước tính</span>
-            <strong className="text-xl text-primary">{result.effectivePrice === null ? "—" : formatVnd(result.effectivePrice)}</strong>
-          </div>
+        <h3 className="mt-4 line-clamp-2 min-h-12 text-sm font-semibold leading-6">
+          {result.productName}
+        </h3>
+        {result.snippet && (
+          <p className="mt-2 line-clamp-2 text-xs leading-6 text-muted-foreground">
+            {result.snippet}
+          </p>
+        )}
+        <div className="mt-4 border-t border-border pt-4">
+          <p className="text-xs text-muted-foreground">
+            Giá tìm được · cần kiểm tra lại
+          </p>
+          <p className="mt-1 text-xl font-bold">
+            {result.price === null
+              ? "Chưa tìm được giá"
+              : formatVnd(result.price)}
+          </p>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            Cashback & voucher: chưa xác nhận cho sản phẩm này.
+          </p>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-accent px-2.5 py-1 font-medium text-accent-foreground">Cashback {formatPercent(result.cashbackRate)}</span>
-          {result.voucherValue > 0 && <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">Mã {result.voucherLabel}: -{formatVnd(result.voucherValue)}</span>}
-        </div>
-        <Button asChild className="mt-5 w-full rounded-xl">
-          <a href={result.originalUrl} target="_blank" rel="noopener noreferrer nofollow">Xem sản phẩm <ExternalLink className="size-4" /></a>
+        <Button asChild className="mt-5 w-full">
+          <a
+            href={result.originalUrl}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
+            Kiểm tra tại nơi bán
+            <ExternalLink />
+          </a>
         </Button>
       </div>
     </article>

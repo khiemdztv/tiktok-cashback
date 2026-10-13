@@ -18,7 +18,7 @@ import {
   type YouSearchResult,
   YouApiError,
 } from "@/lib/you-api";
-import { platformDomains } from "@/src/data/mock";
+import { platformDomains } from "@/src/data/catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,9 +47,14 @@ function searchDomainGroups(query: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("vi");
-  const domainsFor = (slugs: string[]) => slugs.flatMap((slug) => platformDomains[slug] ?? []);
+  const domainsFor = (slugs: string[]) =>
+    slugs.flatMap((slug) => platformDomains[slug] ?? []);
 
-  if (/khach san|hotel|resort|homestay|ve may bay|du lich|agoda|booking|traveloka/.test(normalized)) {
+  if (
+    /khach san|hotel|resort|homestay|ve may bay|du lich|agoda|booking|traveloka/.test(
+      normalized,
+    )
+  ) {
     return [domainsFor(["agoda", "booking-com", "traveloka"])];
   }
   if (/canva/.test(normalized)) return [domainsFor(["canva"])];
@@ -59,18 +64,38 @@ function searchDomainGroups(query: string) {
   if (/nike|adidas|giay|sneaker|thoi trang|quan ao/.test(normalized)) {
     return [marketplaces, domainsFor(["nike", "adidas"])];
   }
-  if (/dien thoai|iphone|ipad|macbook|laptop|may tinh|tivi|tv|samsung|cong nghe/.test(normalized)) {
+  if (
+    /dien thoai|iphone|ipad|macbook|laptop|may tinh|tivi|tv|samsung|cong nghe/.test(
+      normalized,
+    )
+  ) {
     return [marketplaces, domainsFor(["samsung", "fpt-shop"])];
   }
 
-  return [marketplaces, domainsFor(["nike", "adidas", "samsung", "fpt-shop", "agoda", "booking-com", "traveloka", "canva", "grab"])];
+  return [
+    marketplaces,
+    domainsFor([
+      "nike",
+      "adidas",
+      "samsung",
+      "fpt-shop",
+      "agoda",
+      "booking-com",
+      "traveloka",
+      "canva",
+      "grab",
+    ]),
+  ];
 }
 
 function upstreamError(error: unknown) {
   if (error instanceof YouApiError) {
     if ([401, 402, 403, 503].includes(error.status)) {
       return NextResponse.json(
-        { error: "Dịch vụ tìm kiếm chưa sẵn sàng. Vui lòng thử lại sau.", code: "UPSTREAM_AUTH" },
+        {
+          error: "Dịch vụ tìm kiếm chưa sẵn sàng. Vui lòng thử lại sau.",
+          code: "UPSTREAM_AUTH",
+        },
         { status: 503 },
       );
     }
@@ -92,7 +117,10 @@ export async function POST(request: NextRequest) {
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "Dữ liệu gửi lên không hợp lệ.", code: "INVALID_JSON" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Dữ liệu gửi lên không hợp lệ.", code: "INVALID_JSON" },
+      { status: 400 },
+    );
   }
 
   const query = normalizedQuery((payload as { query?: unknown })?.query);
@@ -111,12 +139,18 @@ export async function POST(request: NextRequest) {
   const headers = rateLimitHeaders(rateLimit);
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Bạn đã dùng hết lượt tìm kiếm trong 24 giờ. Vui lòng thử lại sau.", code: "RATE_LIMITED" },
+      {
+        error:
+          "Bạn đã dùng hết lượt tìm kiếm trong 24 giờ. Vui lòng thử lại sau.",
+        code: "RATE_LIMITED",
+      },
       {
         status: 429,
         headers: {
           ...headers,
-          "Retry-After": String(Math.max(Math.ceil((rateLimit.resetAt - Date.now()) / 1000), 1)),
+          "Retry-After": String(
+            Math.max(Math.ceil((rateLimit.resetAt - Date.now()) / 1000), 1),
+          ),
         },
       },
     );
@@ -129,18 +163,31 @@ export async function POST(request: NextRequest) {
       ),
     );
     const seenUrls = new Set<string>();
-    const webResults = responses.flatMap((response) => response.results?.web ?? []).filter(
-      (item): item is YouSearchResult & { url: string } => {
+    const webResults = responses
+      .flatMap((response) => response.results?.web ?? [])
+      .filter((item): item is YouSearchResult & { url: string } => {
         const url = safeHttpUrl(item.url);
-        if (!url || seenUrls.has(url) || isLikelyEditorialUrl(url) || !isRelevantSearchResult(item, query)) return false;
+        if (
+          !url ||
+          seenUrls.has(url) ||
+          isLikelyEditorialUrl(url) ||
+          !isRelevantSearchResult(item, query)
+        )
+          return false;
         seenUrls.add(url);
         return true;
-      },
-    );
+      });
 
     const needsContent = webResults
       .filter((item) => {
-        const text = [item.title, item.description, ...(item.snippets ?? []), ...(item.contents?.highlights ?? [])].filter(Boolean).join(" ");
+        const text = [
+          item.title,
+          item.description,
+          ...(item.snippets ?? []),
+          ...(item.contents?.highlights ?? []),
+        ]
+          .filter(Boolean)
+          .join(" ");
         return extractPriceFromText(text) === null;
       })
       .slice(0, 3)
@@ -152,10 +199,15 @@ export async function POST(request: NextRequest) {
         contents = await fetchContents(needsContent);
       } catch (error) {
         // Search results remain useful when a marketplace blocks page extraction.
-        console.warn("You.com Contents API could not enrich search results", error);
+        console.warn(
+          "You.com Contents API could not enrich search results",
+          error,
+        );
       }
     }
-    const contentsByUrl = new Map(contents.map((item) => [safeHttpUrl(item.url), item]));
+    const contentsByUrl = new Map(
+      contents.map((item) => [safeHttpUrl(item.url), item]),
+    );
 
     const results = webResults
       .map((item) =>

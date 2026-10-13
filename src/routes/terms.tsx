@@ -1,51 +1,56 @@
 "use client";
-
-
 import { PageHeader, SiteLayout } from "@/src/components/layout/SiteLayout";
-const LEGAL_UPDATED = "13/10/2026";
-
 const sections = [
   {
-    title: "1. Phạm vi dịch vụ",
-    body: "cashback.id.vn là nền tảng tổng hợp và cung cấp thông tin về chương trình cashback, voucher, khuyến mãi và giá bán. Chúng tôi không bán hàng, không xử lý thanh toán và không trực tiếp chi trả cashback.",
+    title: "Phạm vi sản phẩm",
+    text: "Cashback là công cụ khám phá thông tin mua sắm, voucher và chương trình tiền hoàn. Website không bán sản phẩm, không xử lý thanh toán và hiện không cung cấp tài khoản, ví hoặc chức năng chi trả tiền hoàn cho người dùng.",
   },
   {
-    title: "2. Tính chính xác của thông tin",
-    body: "Thông tin trên cashback.id.vn được tổng hợp từ nhiều nguồn và có thể thay đổi bất kỳ lúc nào. Bạn cần kiểm tra lại tỷ lệ cashback, điều kiện voucher và giá bán tại website của đối tác trước khi giao dịch.",
+    title: "Giá và thông tin ưu đãi",
+    text: "Giá tìm được được trích xuất từ nội dung nguồn và có thể khác giá thực tế tại thời điểm mua. Voucher từ nguồn đã kết nối có thể hết lượt, hết ngân sách hoặc không áp dụng cho tài khoản hay sản phẩm của bạn. Cần kiểm tra điều kiện tại nơi bán trước khi thanh toán.",
   },
   {
-    title: "3. Trách nhiệm của người dùng",
-    body: "Bạn chịu trách nhiệm về quyết định mua hàng của mình, bao gồm việc đọc và tuân thủ điều kiện của từng chương trình cashback hoặc voucher.",
+    title: "Cashback và liên kết tiếp thị",
+    text: "Liên kết trên website có thể là liên kết tiếp thị và có thể tạo hoa hồng cho bên giới thiệu nếu chương trình công nhận giao dịch. Điều này không đồng nghĩa người dùng sẽ được hoàn tiền. Chỉ có quyền nhận cashback khi một chương trình riêng quy định rõ điều kiện và đơn vị chi trả.",
   },
   {
-    title: "4. Giới hạn trách nhiệm",
-    body: "cashback.id.vn không chịu trách nhiệm với các khoản cashback bị từ chối, voucher hết hạn, thay đổi giá hoặc tranh chấp phát sinh giữa bạn và đơn vị bán hàng hoặc đơn vị cung cấp cashback.",
+    title: "Công cụ ước tính và phân tích",
+    text: "Bảng so sánh tính theo số liệu bạn nhập và chưa bao gồm mọi loại phí. Kết quả AI mang tính tham khảo, có thể sai hoặc thiếu thông tin. Không coi các kết quả này là xác nhận giá bán hoặc cam kết tiết kiệm.",
   },
   {
-    title: "5. Liên kết đến bên thứ ba",
-    body: "Website có thể chứa liên kết đến các nền tảng bên thứ ba. Việc bạn sử dụng các nền tảng đó tuân theo điều khoản riêng của họ.",
+    title: "Mua hàng và hỗ trợ giao dịch",
+    text: "Thanh toán, giao hàng, đổi trả và các tranh chấp giao dịch được xử lý tại nơi bán hoặc đơn vị cung cấp chương trình. Hãy liên hệ đơn vị đó với các vấn đề liên quan đến đơn hàng và tiền hoàn.",
   },
   {
-    title: "6. Thay đổi điều khoản",
-    body: "Chúng tôi có thể cập nhật điều khoản này theo thời gian. Phiên bản mới nhất luôn được đăng tải tại trang này.",
+    title: "Sử dụng dịch vụ",
+    text: "Sử dụng công cụ trong phạm vi khám phá và mua sắm hợp lệ. Không gửi dữ liệu bí mật, không lạm dụng yêu cầu tự động hoặc can thiệp hoạt động của website. Dịch vụ có giới hạn lượt yêu cầu và có thể tạm thời chưa sẵn sàng.",
   },
   {
-    title: "7. Liên hệ",
-    body: "Mọi câu hỏi về điều khoản sử dụng, vui lòng liên hệ admin@cashback.id.vn.",
+    title: "Cập nhật và liên hệ",
+    text: "Phạm vi sản phẩm và các nội dung này có thể được cập nhật khi chức năng phát triển. Nếu cần làm rõ nội dung, hãy liên hệ đội ngũ qua địa chỉ email chính thức bên dưới.",
   },
 ];
-
 export default function TermsPage() {
   return (
     <SiteLayout>
-      <PageHeader title="Điều khoản sử dụng" subtitle={`Cập nhật lần cuối: ${LEGAL_UPDATED}`} />
-      <div className="container-page max-w-3xl space-y-8 py-12">
-        {sections.map((s) => (
-          <section key={s.title}>
-            <h2 className="text-lg font-bold">{s.title}</h2>
-            <p className="mt-2 leading-relaxed text-muted-foreground">{s.body}</p>
+      <PageHeader
+        title="Điều khoản sử dụng"
+        subtitle="Phạm vi sản phẩm và những điều cần hiểu trước khi sử dụng. Cập nhật: 13/10/2026."
+      />
+      <div className="container-page max-w-3xl space-y-7 py-10">
+        {sections.map((item, index) => (
+          <section key={item.title}>
+            <h2 className="text-lg font-semibold">
+              {index + 1}. {item.title}
+            </h2>
+            <p className="mt-3 text-sm leading-8 text-muted-foreground">
+              {item.text}
+            </p>
           </section>
         ))}
+        <a href="mailto:admin@cashback.id.vn" className="quiet-link">
+          admin@cashback.id.vn
+        </a>
       </div>
     </SiteLayout>
   );

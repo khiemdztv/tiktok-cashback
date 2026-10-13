@@ -60,6 +60,8 @@ export type SmartSearchResult = {
   effectivePrice: number | null;
   snippet: string;
   source: "you_api" | "internal";
+  /** Unknown incentives are not deductions from a discovered price. */
+  incentiveStatus?: "unverified";
 };
 
 export type SmartSearchResponse = {
@@ -87,7 +89,8 @@ export class YouApiError extends Error {
 }
 
 function apiKey() {
-  const key = process.env.YOU_API_KEY?.trim() || process.env.YDC_API_KEY?.trim();
+  const key =
+    process.env.YOU_API_KEY?.trim() || process.env.YDC_API_KEY?.trim();
   if (!key) throw new YouApiError("You.com API key chưa được cấu hình.", 503);
   return key;
 }
@@ -126,7 +129,10 @@ async function requestJson<T>(
       const retryable = response.status === 429 || response.status >= 500;
       let detail = "";
       try {
-        const payload = (await response.json()) as { message?: string; error?: string };
+        const payload = (await response.json()) as {
+          message?: string;
+          error?: string;
+        };
         detail = payload.message ?? payload.error ?? "";
       } catch {
         // Keep the public error concise when the upstream response is not JSON.
@@ -140,7 +146,12 @@ async function requestJson<T>(
       lastError = error;
     } catch (error) {
       lastError = error;
-      if (error instanceof YouApiError && error.status < 500 && error.status !== 429) throw error;
+      if (
+        error instanceof YouApiError &&
+        error.status < 500 &&
+        error.status !== 429
+      )
+        throw error;
       if (attempt === attempts - 1) {
         if (error instanceof YouApiError) throw error;
         if (error instanceof Error && error.name === "AbortError") {

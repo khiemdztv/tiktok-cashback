@@ -1,11 +1,19 @@
-import type { Store } from "@/src/data/mock";
 import { cn } from "@/src/lib/utils";
 
 const localLogos: Record<string, string> = {
-  Shopee: "shopee", Lazada: "lazada", "TikTok Shop": "tiktok", Tiki: "tiki",
-  Agoda: "agoda", "Booking.com": "bookingdotcom", Traveloka: "traveloka",
-  Nike: "nike", Adidas: "adidas", Samsung: "samsung", "FPT Shop": "fptshop",
-  Canva: "canva", Grab: "grab",
+  Shopee: "shopee",
+  Lazada: "lazada",
+  "TikTok Shop": "tiktok",
+  Tiki: "tiki",
+  Agoda: "agoda",
+  "Booking.com": "bookingdotcom",
+  Traveloka: "traveloka",
+  Nike: "nike",
+  Adidas: "adidas",
+  Samsung: "samsung",
+  "FPT Shop": "fptshop",
+  Canva: "canva",
+  Grab: "grab",
 };
 
 export function StoreLogo({
@@ -13,7 +21,7 @@ export function StoreLogo({
   size = "md",
   className,
 }: {
-  store: Pick<Store, "short" | "color" | "name">;
+  store: { short: string; color: string; name: string };
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
@@ -33,9 +41,15 @@ export function StoreLogo({
       )}
       style={{ color: store.color }}
     >
-      {localLogos[store.name]
-        ? <img src={`/brands/${localLogos[store.name]}.svg`} alt="" className="h-[72%] w-[78%] object-contain" />
-        : <span className="text-xs">{store.short}</span>}
+      {localLogos[store.name] ? (
+        <img
+          src={`/brands/${localLogos[store.name]}.svg`}
+          alt=""
+          className="h-[72%] w-[78%] object-contain"
+        />
+      ) : (
+        <span className="text-xs">{store.short}</span>
+      )}
     </span>
   );
 }

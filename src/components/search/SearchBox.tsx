@@ -1,11 +1,9 @@
+"use client";
 import { useNavigate } from "@/src/lib/navigation";
-import { Link2, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Search, Link2 } from "lucide-react";
 import { useEffect, useState } from "react";
-
 import { Button } from "@/src/components/ui/button";
-import { popularSearches } from "@/src/data/mock";
 import { cn } from "@/src/lib/utils";
-
 export function SearchBox({
   defaultValue = "",
   size = "lg",
@@ -18,87 +16,54 @@ export function SearchBox({
   className?: string;
 }) {
   const [q, setQ] = useState(defaultValue);
-  const [focused, setFocused] = useState(false);
-  const [exampleIndex, setExampleIndex] = useState(0);
   const navigate = useNavigate();
   useEffect(() => setQ(defaultValue), [defaultValue]);
-
-  const smartExamples = ["iPhone 15", "Khách sạn Đà Nẵng", "Nike Air Force 1"];
-  useEffect(() => {
-    if (q || focused) return;
-    const timer = window.setInterval(() => setExampleIndex((current) => (current + 1) % smartExamples.length), 2600);
-    return () => window.clearInterval(timer);
-  }, [focused, q, smartExamples.length]);
-
-  const suggestions = q.trim()
-    ? popularSearches.filter((s) => s.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 5)
-    : popularSearches.slice(0, 5);
-
-  const go = (value: string) => {
-    if (!value.trim()) return;
-    navigate({ to: "/search", search: { q: value.trim() } });
-  };
-
   return (
-    <div className={cn("relative w-full", className)}>
+    <div className={cn("w-full min-w-0", className)}>
       <form
+        role="search"
         onSubmit={(e) => {
           e.preventDefault();
-          go(q);
+          if (q.trim().length >= 2)
+            navigate({ to: "/search", search: { q: q.trim() } });
         }}
-        className={cn(
-          "flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-lift transition-all",
-          focused && "border-primary/60 ring-4 ring-primary/10",
-          size === "lg" ? "pl-4" : "pl-3",
-        )}
+        className="flex min-w-0 items-center gap-2 rounded-2xl border border-input bg-white p-2 pl-4 shadow-soft focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10"
       >
-        <Search className={cn("shrink-0 text-muted-foreground", size === "lg" ? "size-5" : "size-4")} />
+        <Search className="size-5 shrink-0 text-primary" />
         <input
-          aria-label="Tìm sản phẩm hoặc cửa hàng"
+          type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 150)}
-          placeholder={`Thử “${smartExamples[exampleIndex]}”`}
+          required
+          minLength={2}
+          maxLength={120}
+          aria-label="Tìm sản phẩm hoặc cửa hàng"
+          placeholder="Tên sản phẩm, cửa hàng..."
           className={cn(
-            "min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground",
-            size === "lg" ? "h-12 text-base md:text-lg" : "h-10 text-sm",
+            "min-w-0 flex-1 bg-transparent text-foreground outline-none placeholder:text-muted-foreground",
+            size === "lg" ? "h-11 text-base" : "h-9 text-sm",
           )}
         />
-        <span className="hidden items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-accent-foreground sm:flex">
-          <Sparkles className="size-3" /> AI
-        </span>
-        <Button type="submit" className="rounded-xl" size={size === "lg" ? "lg" : "default"}>
-          <Sparkles className="size-4 sm:hidden" /> Tìm kiếm
+        <Button
+          type="submit"
+          className={cn(
+            "shrink-0 rounded-xl px-3 sm:px-5",
+            size === "lg" ? "h-11" : "h-10",
+          )}
+        >
+          <span className="hidden sm:inline">Tìm kiếm</span>
+          <ArrowRight className="sm:hidden" />
+          <span className="sr-only sm:hidden">Tìm kiếm</span>
         </Button>
       </form>
-
-      {focused && suggestions.length > 0 && (
-        <ul className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-popover p-1.5 shadow-lift">
-          {suggestions.map((s) => (
-            <li key={s}>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => go(s)}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm hover:bg-secondary"
-              >
-                <Search className="size-4 text-muted-foreground" />
-                {s}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
       {showPaste && (
         <button
           type="button"
           onClick={() => navigate({ to: "/tools" })}
-          className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+          className="quiet-link mt-3 text-xs"
         >
-          <Link2 className="size-4" />
-          Dán link sản phẩm
+          <Link2 className="size-3.5" />
+          Bạn đã có link Shopee? Đổi link tại đây
         </button>
       )}
     </div>

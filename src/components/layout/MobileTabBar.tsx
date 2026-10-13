@@ -1,19 +1,18 @@
 import { Link } from "@/src/lib/navigation";
-import { Home, Link2, Percent, Scale, Store, Ticket } from "lucide-react";
+import { Home, Search, Scale, Store, Ticket } from "lucide-react";
 
 const items = [
   { to: "/", label: "Trang chủ", icon: Home, exact: true },
-  { to: "/cashback", label: "Cashback", icon: Percent, exact: false },
+  { to: "/search", label: "Tìm kiếm", icon: Search, exact: false },
   { to: "/shopee-vouchers", label: "Mã Shopee", icon: Ticket, exact: false },
   { to: "/stores", label: "Cửa hàng", icon: Store, exact: false },
   { to: "/compare", label: "So sánh", icon: Scale, exact: false },
-  { to: "/tools", label: "Công cụ", icon: Link2, exact: false },
 ] as const;
 
 export function MobileTabBar() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-md lg:hidden">
-      <ul className="grid grid-cols-6 pb-[env(safe-area-inset-bottom)]">
+      <ul className="grid grid-cols-5 pb-[env(safe-area-inset-bottom)]">
         {items.map((item) => (
           <li key={item.label}>
             <Link

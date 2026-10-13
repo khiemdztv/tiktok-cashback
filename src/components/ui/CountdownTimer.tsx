@@ -14,16 +14,30 @@ function remainingLabel(endDate: string | Date) {
   return `Còn ${Math.max(1, minutes)} phút`;
 }
 
-export function CountdownTimer({ endDate, className = "" }: { endDate?: string | Date | null; className?: string }) {
-  const [label, setLabel] = useState(() => (endDate ? remainingLabel(endDate) : "Không giới hạn"));
+export function CountdownTimer({
+  endDate,
+  className = "",
+}: {
+  endDate?: string | Date | null;
+  className?: string;
+}) {
+  const [label, setLabel] = useState("Chưa có hạn dùng");
 
   useEffect(() => {
-    if (!endDate) return;
+    if (!endDate) {
+      setLabel("Chưa có hạn dùng");
+      return;
+    }
     const update = () => setLabel(remainingLabel(endDate));
     update();
     const timer = window.setInterval(update, 60_000);
     return () => window.clearInterval(timer);
   }, [endDate]);
 
-  return <span className={`inline-flex items-center gap-1.5 ${className}`}><Clock3 className="size-4" />{label}</span>;
+  return (
+    <span className={`inline-flex items-center gap-1.5 ${className}`}>
+      <Clock3 className="size-4" />
+      {label}
+    </span>
+  );
 }

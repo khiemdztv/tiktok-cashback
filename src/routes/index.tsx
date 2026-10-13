@@ -1,334 +1,335 @@
 "use client";
-
 import { Link } from "@/src/lib/navigation";
 import {
   ArrowRight,
-  BadgeCheck,
-  BarChart3,
+  ArrowUpRight,
   Check,
-  ChevronRight,
-  Clock3,
-  Compass,
-  Link2,
-  MousePointerClick,
   Search,
-  ShieldCheck,
-  Sparkles,
-  Tags,
   TicketPercent,
-  WalletCards,
+  ShieldCheck,
+  Link2,
+  Scale,
+  MousePointer2,
 } from "lucide-react";
-import { useState } from "react";
-
-import { CategoryIcon } from "@/src/components/brand/CategoryIcon";
-import { StoreLogo } from "@/src/components/brand/StoreLogo";
 import { SiteLayout } from "@/src/components/layout/SiteLayout";
 import { SearchBox } from "@/src/components/search/SearchBox";
-import { Badge } from "@/src/components/ui/badge";
+import { StoreCard } from "@/src/components/cards/StoreCard";
+import { StoreLogo } from "@/src/components/brand/StoreLogo";
+import { CategoryIcon } from "@/src/components/brand/CategoryIcon";
 import { Button } from "@/src/components/ui/button";
-import { Section } from "@/src/components/ui/section";
-import { categories, searchExamples, storeBySlug, stores } from "@/src/data/mock";
-import { formatPercent, formatVnd } from "@/src/lib/format";
-
-const featured = ["shopee", "lazada", "agoda", "traveloka"];
-const previewStores = ["shopee", "lazada", "agoda"];
-
-function ProductPreview() {
-  return (
-    <div className="startup-preview relative mx-auto w-full max-w-[520px]" aria-label="Minh họa kết quả tìm kiếm trên cashback.id.vn">
-      <div className="rounded-[28px] border border-white/15 bg-white/[0.98] p-3 shadow-[0_30px_90px_rgba(1,20,15,.34)] sm:p-4">
-        <div className="flex items-center gap-3 border-b border-slate-100 px-2 pb-4 pt-1">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
-            <Search className="size-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-900">iPhone 15 chính hãng</p>
-            <p className="mt-0.5 text-xs text-slate-500">Đang đối chiếu ưu đãi phù hợp</p>
-          </div>
-          <span className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 sm:flex">
-            <span className="size-1.5 rounded-full bg-emerald-500" /> Trực tuyến
-          </span>
-        </div>
-
-        <div className="space-y-2.5 pt-3">
-          {previewStores.map((slug, index) => {
-            const store = storeBySlug(slug)!;
-            return (
-              <div
-                key={slug}
-                className={`preview-result flex items-center gap-3 rounded-2xl border p-3.5 ${index === 0 ? "border-emerald-200 bg-emerald-50/60" : "border-slate-100 bg-white"}`}
-                style={{ animationDelay: `${220 + index * 110}ms` }}
-              >
-                <StoreLogo store={store} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-semibold text-slate-900">{store.name}</p>
-                    {index === 0 && <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">Gợi ý</span>}
-                  </div>
-                  <p className="mt-0.5 text-[11px] text-slate-500">Voucher + cashback tham khảo</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-base font-extrabold text-emerald-700">{formatPercent(store.maxRate)}</p>
-                  <p className="text-[10px] text-slate-400">lên đến</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-3 flex items-center justify-between rounded-2xl bg-slate-950 px-4 py-3 text-white">
-          <div className="flex items-center gap-2 text-xs font-medium">
-            <ShieldCheck className="size-4 text-emerald-400" /> Có điều kiện áp dụng rõ ràng
-          </div>
-          <ChevronRight className="size-4 text-slate-400" />
-        </div>
-      </div>
-
-      <div className="preview-float absolute -left-4 top-24 hidden items-center gap-2 rounded-2xl border border-white/60 bg-white px-3 py-2.5 shadow-xl sm:flex">
-        <span className="grid size-7 place-items-center rounded-lg bg-amber-100 text-amber-700"><TicketPercent className="size-4" /></span>
-        <div><p className="text-[10px] text-slate-400">Đã tìm thấy</p><p className="text-xs font-bold text-slate-900">Voucher phù hợp</p></div>
-      </div>
-      <div className="preview-float preview-float-late absolute -bottom-5 -right-3 hidden items-center gap-2 rounded-2xl border border-white/60 bg-white px-3 py-2.5 shadow-xl sm:flex">
-        <span className="grid size-7 place-items-center rounded-lg bg-sky-100 text-sky-700"><BarChart3 className="size-4" /></span>
-        <div><p className="text-[10px] text-slate-400">So sánh</p><p className="text-xs font-bold text-slate-900">Chi phí sau ưu đãi</p></div>
-      </div>
-    </div>
-  );
-}
-
-function SavingsCalculator() {
-  const [price, setPrice] = useState(1000000);
-  const cashbackRate = 5;
-  const voucher = 100000;
-  const cashbackValue = Math.round((Math.max(price - voucher, 0) * cashbackRate) / 100);
-  const effective = Math.max(price - voucher - cashbackValue, 0);
-
-  return (
-    <div className="overflow-hidden rounded-[32px] border border-border bg-card shadow-lift">
-      <div className="grid lg:grid-cols-[.9fr_1.1fr]">
-        <div className="bg-[#0b2f27] p-7 text-white md:p-10">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-emerald-100">
-            <WalletCards className="size-3.5" /> Công cụ ước tính
-          </span>
-          <h2 className="mt-5 text-3xl font-bold leading-tight md:text-4xl">Biết giá thực trả trước khi quyết định.</h2>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-emerald-50/70 md:text-base">
-            Kết hợp giá niêm yết, voucher và cashback để nhìn thấy mức chi phí hiệu dụng trong một phép tính đơn giản.
-          </p>
-          <ul className="mt-7 space-y-3 text-sm text-emerald-50/90">
-            {["Tách rõ từng khoản tiết kiệm", "Điều chỉnh theo ngân sách của bạn", "Không cần đăng ký tài khoản"].map((item) => (
-              <li key={item} className="flex items-center gap-2.5"><span className="grid size-5 place-items-center rounded-full bg-emerald-400/20"><Check className="size-3 text-emerald-300" /></span>{item}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="p-7 md:p-10">
-          <label htmlFor="price" className="text-sm font-semibold">Giá sản phẩm</label>
-          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-border bg-background px-4 focus-within:border-primary/60 focus-within:ring-4 focus-within:ring-primary/10">
-            <input
-              id="price"
-              inputMode="numeric"
-              value={price === 0 ? "" : price.toLocaleString("vi-VN")}
-              onChange={(event) => {
-                const raw = Number(event.target.value.replace(/\D/g, ""));
-                setPrice(Number.isNaN(raw) ? 0 : Math.min(raw, 999999999));
-              }}
-              className="h-14 min-w-0 flex-1 bg-transparent text-xl font-bold outline-none"
-            />
-            <span className="font-medium text-muted-foreground">đ</span>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {[500000, 1000000, 2500000].map((value) => (
-              <button key={value} onClick={() => setPrice(value)} className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium transition-colors hover:border-primary/30 hover:bg-accent">
-                {formatVnd(value)}
-              </button>
-            ))}
-          </div>
-
-          <dl className="mt-7 space-y-3 text-sm">
-            <div className="flex justify-between text-muted-foreground"><dt>Voucher minh họa</dt><dd className="font-semibold text-foreground">-{formatVnd(voucher)}</dd></div>
-            <div className="flex justify-between text-muted-foreground"><dt>Cashback minh họa ({cashbackRate}%)</dt><dd className="font-semibold text-primary">-{formatVnd(cashbackValue)}</dd></div>
-            <div className="flex items-end justify-between border-t border-border pt-4"><dt className="font-semibold">Chi phí hiệu dụng</dt><dd className="text-2xl font-extrabold text-primary md:text-3xl">{formatVnd(effective)}</dd></div>
-          </dl>
-          <Button asChild className="mt-6 h-11 w-full rounded-xl"><Link to="/compare">So sánh chi tiết <ArrowRight className="size-4" /></Link></Button>
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Phép tính dùng số liệu minh họa. Ưu đãi thực tế phụ thuộc điều kiện tại thời điểm mua.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { LatestVouchers } from "@/src/components/offers/LatestVouchers";
+import { FAQ } from "@/src/components/content/FAQ";
+import { merchants, shoppingCategories } from "@/src/data/catalog";
 
 export default function HomePage() {
   return (
     <SiteLayout>
-      <section className="startup-hero relative overflow-hidden bg-[#08271f] text-white">
-        <div className="hero-grid" aria-hidden="true" />
-        <div className="hero-orb hero-orb-one" aria-hidden="true" />
-        <div className="hero-orb hero-orb-two" aria-hidden="true" />
-        <div className="container-page relative grid items-center gap-12 py-14 md:py-20 lg:grid-cols-[1.08fr_.92fr] lg:gap-16 lg:py-24">
-          <div className="min-w-0">
-            <Badge className="mb-6 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-xs font-semibold text-emerald-100 hover:bg-emerald-300/10">
-              <Sparkles className="mr-1.5 size-3.5" /> Nền tảng mua sắm thông minh cho người Việt
-            </Badge>
-            <h1 className="max-w-3xl text-[2.6rem] font-black leading-[1.05] tracking-[-.045em] sm:text-5xl md:text-6xl lg:text-[4.25rem]">
-              Tìm cách mua online <span className="text-emerald-400">có lợi hơn.</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-emerald-50/70 md:text-lg">
-              cashback.id.vn gom cashback, voucher và thông tin so sánh vào một nơi để bạn kiểm tra trước khi thanh toán.
-            </p>
-
-            <div className="mt-8 max-w-2xl rounded-[22px] bg-white p-1.5 shadow-[0_20px_60px_rgba(0,0,0,.22)]">
-              <SearchBox showPaste={false} className="[&_form]:border-0 [&_form]:shadow-none [&_input]:text-slate-900 [&_input]:placeholder:text-slate-400" />
+      <section className="border-b border-border bg-[#edf2e8]">
+        <div className="container-page grid items-center gap-10 py-12 md:py-16 lg:grid-cols-[1.1fr_.9fr] lg:gap-16">
+          <div className="min-w-0 enter">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/60 px-3 py-1.5 text-xs font-medium text-primary">
+              <span className="size-1.5 rounded-full bg-primary" />
+              Cashback · Đang phát triển tại Việt Nam
             </div>
-
-            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-emerald-50/70 sm:text-sm">
-              {["Miễn phí sử dụng", "Không cần đăng nhập", "Điều kiện hiển thị rõ"].map((item) => (
-                <span key={item} className="inline-flex items-center gap-1.5"><BadgeCheck className="size-4 text-emerald-400" />{item}</span>
+            <h1 className="mt-6 max-w-2xl text-[38px] font-bold leading-[1.13] tracking-[-.045em] sm:text-5xl lg:text-[58px]">
+              Mỗi lần mua sắm.
+              <br />
+              <span className="text-primary">Một lựa chọn tốt hơn.</span>
+            </h1>
+            <p className="mt-5 max-w-lg text-sm leading-7 text-muted-foreground md:text-base">
+              Tìm sản phẩm, khám phá voucher và hiểu điều kiện cashback trước
+              khi thanh toán. Những thông tin bạn cần, trong một nơi.
+            </p>
+            <SearchBox showPaste={false} className="mt-7 max-w-xl" />
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>Thử tìm:</span>
+              {["iPhone 15", "Nike", "Agoda"].map((q) => (
+                <Link
+                  key={q}
+                  to="/search"
+                  search={{ q }}
+                  className="rounded-full px-2.5 py-1.5 hover:bg-white hover:text-primary"
+                >
+                  {q}
+                  <ArrowUpRight className="ml-1 inline size-3" />
+                </Link>
               ))}
             </div>
+            <p className="mt-6 flex items-center gap-2 text-xs font-medium text-primary">
+              <Check className="size-4" />
+              Miễn phí khám phá · Không cần đăng nhập
+            </p>
           </div>
-          <ProductPreview />
-        </div>
-      </section>
-
-      <section className="border-b border-border bg-white">
-        <div className="container-page flex flex-col gap-5 py-6 md:flex-row md:items-center md:justify-between">
-          <p className="text-xs font-semibold uppercase tracking-[.16em] text-muted-foreground">Khám phá ưu đãi theo thương hiệu</p>
-          <div className="flex flex-wrap items-center gap-3 sm:gap-5">
-            {stores.slice(0, 7).map((store) => (
-              <Link key={store.slug} to="/stores/$store" params={{ store: store.slug }} aria-label={`Xem ưu đãi ${store.name}`} className="opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0">
-                <StoreLogo store={store} size="sm" className="border-0 shadow-none" />
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <Section className="py-16 md:py-24">
-        <div className="grid gap-10 lg:grid-cols-[.82fr_1.18fr] lg:items-end">
-          <div>
-            <p className="eyebrow">Một hành trình đơn giản</p>
-            <h2 className="mt-4 max-w-xl text-3xl font-bold leading-tight md:text-5xl">Từ ý định mua đến quyết định rõ ràng.</h2>
-            <p className="mt-5 max-w-lg leading-relaxed text-muted-foreground">Thông tin ưu đãi thường nằm rải rác. cashback.id.vn sắp xếp lại hành trình để bạn biết cần kiểm tra gì trước khi mở ví.</p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              { icon: Search, number: "01", title: "Tìm", desc: "Nhập sản phẩm, cửa hàng hoặc dán đường dẫn." },
-              { icon: Tags, number: "02", title: "Đối chiếu", desc: "Xem cashback, voucher và điều kiện liên quan." },
-              { icon: MousePointerClick, number: "03", title: "Quyết định", desc: "Chọn phương án phù hợp rồi tiếp tục mua hàng." },
-            ].map((step) => (
-              <article key={step.number} className="group rounded-3xl border border-border bg-card p-5 shadow-soft">
-                <div className="flex items-center justify-between"><span className="grid size-10 place-items-center rounded-xl bg-accent text-primary"><step.icon className="size-5" /></span><span className="text-xs font-bold text-muted-foreground/60">{step.number}</span></div>
-                <h3 className="mt-8 text-lg font-bold">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.desc}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      <section className="bg-[#f3f7f5]">
-        <div className="container-page py-16 md:py-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="eyebrow">Một điểm bắt đầu, nhiều cách tiết kiệm</p>
-            <h2 className="mt-4 text-3xl font-bold md:text-5xl">Bộ công cụ cho mỗi lần mua online.</h2>
-            <p className="mt-4 text-muted-foreground">Khám phá theo nhu cầu của bạn, từ săn ưu đãi đến kiểm tra chi phí cuối cùng.</p>
-          </div>
-
-          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-12">
-            <Link to="/search" className="feature-panel feature-panel-primary group lg:col-span-7">
-              <div className="relative z-10 max-w-md">
-                <span className="feature-icon"><Compass className="size-6" /></span>
-                <p className="mt-8 text-xs font-bold uppercase tracking-[.14em] text-emerald-200">Smart discovery</p>
-                <h3 className="mt-3 text-2xl font-bold text-white md:text-3xl">Tìm kiếm sản phẩm và cơ hội tiết kiệm trong cùng một luồng.</h3>
-                <p className="mt-4 text-sm leading-relaxed text-emerald-50/70">Bắt đầu bằng tên sản phẩm hoặc thương hiệu, sau đó xem các lựa chọn liên quan thay vì tự mở nhiều tab.</p>
-                <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-emerald-300">Bắt đầu tìm kiếm <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></span>
+          <div
+            className="relative mx-auto w-full max-w-[460px] enter"
+            style={{ animationDelay: "100ms" }}
+          >
+            <div className="overflow-hidden rounded-3xl border border-primary/10 bg-[#fbfcf8] shadow-lift">
+              <div className="flex items-center justify-between border-b border-border px-6 py-4">
+                <p className="text-sm font-semibold">Trước khi bạn mua</p>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Shopping checklist
+                </span>
               </div>
-              <div className="feature-rings" aria-hidden="true" />
-            </Link>
-
-            <Link to="/shopee-vouchers" className="feature-panel group bg-[#fff4e8] lg:col-span-5">
-              <span className="feature-icon bg-white text-orange-600"><TicketPercent className="size-6" /></span>
-              <p className="mt-8 text-xs font-bold uppercase tracking-[.14em] text-orange-700">Voucher center</p>
-              <h3 className="mt-3 text-2xl font-bold">Theo dõi mã Shopee theo từng đợt sale.</h3>
-              <p className="mt-4 text-sm leading-relaxed text-slate-600">Tìm nhanh voucher và mở đúng trang áp dụng khi bạn cần.</p>
-              <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-orange-700">Xem mã đang có <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></span>
-            </Link>
-
-            <Link to="/compare" className="feature-panel group bg-white lg:col-span-5">
-              <span className="feature-icon bg-sky-50 text-sky-700"><BarChart3 className="size-6" /></span>
-              <p className="mt-8 text-xs font-bold uppercase tracking-[.14em] text-sky-700">Price clarity</p>
-              <h3 className="mt-3 text-2xl font-bold">So sánh bằng chi phí sau ưu đãi.</h3>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">Giá niêm yết thấp chưa chắc là lựa chọn có lợi nhất sau voucher và cashback.</p>
-              <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-sky-700">Mở công cụ so sánh <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></span>
-            </Link>
-
-            <Link to="/tools" className="feature-panel group bg-[#e8f6f0] lg:col-span-7">
-              <div className="grid items-center gap-8 sm:grid-cols-[1fr_auto]">
-                <div>
-                  <span className="feature-icon bg-white text-emerald-700"><Link2 className="size-6" /></span>
-                  <p className="mt-8 text-xs font-bold uppercase tracking-[.14em] text-emerald-700">Tiện ích phụ</p>
-                  <h3 className="mt-3 text-2xl font-bold">Đổi link Shopee trong vài giây.</h3>
-                  <p className="mt-4 text-sm leading-relaxed text-slate-600">Dán link sản phẩm và nhận đường dẫn mới, miễn phí và không cần tài khoản.</p>
+              <div className="p-6">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-12 place-items-center rounded-2xl bg-primary text-white">
+                    <Search className="size-5" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold">Bạn muốn mua gì?</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Sản phẩm · thương hiệu · dịch vụ
+                    </p>
+                  </div>
                 </div>
-                <span className="grid size-20 place-items-center rounded-[24px] border border-emerald-900/10 bg-white text-emerald-700 shadow-soft sm:size-24"><Link2 className="size-9" /></span>
+                <div className="ml-6 h-6 border-l border-dashed border-primary/25" />
+                <div className="rounded-2xl border border-border bg-white p-4">
+                  <div className="flex gap-3">
+                    <TicketPercent className="mt-0.5 size-5 shrink-0 text-primary" />
+                    <div>
+                      <p className="text-sm font-semibold">Kiểm tra voucher</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        Mức giảm, đơn tối thiểu, hạn sử dụng.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {["Giảm tiền", "Giảm %", "Freeship"].map((label) => (
+                      <span
+                        key={label}
+                        className="rounded-md bg-surface px-2 py-1 text-[11px] font-medium text-muted-foreground"
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="ml-6 h-6 border-l border-dashed border-primary/25" />
+                <div className="rounded-2xl bg-[#e8eedf] p-4">
+                  <div className="flex gap-3">
+                    <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
+                    <div>
+                      <p className="text-sm font-semibold">
+                        Hiểu điều kiện cashback
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        Ai chi trả? Đơn nào hợp lệ? Khi nào được duyệt?
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </Link>
+              <Link
+                to="/how-it-works"
+                className="flex items-center justify-between border-t border-border bg-white px-6 py-4 text-xs font-semibold text-primary"
+              >
+                Một phút để hiểu cách hoạt động
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
-
-      <Section title="Ưu đãi nổi bật" subtitle="Mức cashback tham khảo từ các chương trình đang được tổng hợp." action={<Button asChild variant="ghost" className="rounded-full"><Link to="/cashback">Xem tất cả <ArrowRight className="size-4" /></Link></Button>} className="py-16 md:py-24">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((slug) => {
-            const store = storeBySlug(slug)!;
-            return (
-              <article key={slug} className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-soft">
-                <div className="flex items-start justify-between"><StoreLogo store={store} /><span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">Tham khảo</span></div>
-                <h3 className="mt-5 text-lg font-bold">{store.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{store.category}</p>
-                <p className="mt-6 text-3xl font-extrabold text-primary">{formatPercent(store.maxRate)}</p>
-                <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><Clock3 className="size-3.5" /> Cashback lên đến</p>
-                <Link to="/stores/$store" params={{ store: store.slug }} className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">Xem điều kiện <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></Link>
-              </article>
-            );
-          })}
+      <section className="container-page py-9">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-base font-semibold">
+            Bạn đang quan tâm điều gì?
+          </h2>
+          <Link to="/stores" className="quiet-link text-xs">
+            Tất cả cửa hàng
+            <ArrowRight className="size-3.5" />
+          </Link>
         </div>
-      </Section>
-
-      <Section>
-        <SavingsCalculator />
-      </Section>
-
-      <Section title="Khám phá theo nhu cầu" subtitle="Đi thẳng đến nhóm sản phẩm và dịch vụ bạn quan tâm.">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {categories.map((category) => (
-            <Link key={category.slug} to="/search" search={{ q: category.label }} className="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card p-4 text-center shadow-soft transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-lift">
+        <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {shoppingCategories.map((category) => (
+            <Link
+              key={category.slug}
+              to="/search"
+              search={{ q: category.label }}
+              className="group flex flex-col items-center gap-2 rounded-xl px-2 py-3 transition-colors hover:bg-white"
+            >
               <CategoryIcon slug={category.slug} />
-              <span className="text-sm font-semibold">{category.label}</span>
+              <span className="text-xs font-medium sm:text-sm">
+                {category.label}
+              </span>
             </Link>
           ))}
         </div>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-          <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tìm nhanh</span>
-          {searchExamples.map((example) => <Link key={example} to="/search" search={{ q: example }} className="rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">{example}</Link>)}
-        </div>
-      </Section>
-
-      <section className="container-page py-12 md:py-20">
-        <div className="relative overflow-hidden rounded-[34px] bg-[#0d1f1a] px-6 py-10 text-white md:px-12 md:py-14">
-          <div className="absolute -right-20 -top-24 size-72 rounded-full border border-emerald-300/10" aria-hidden="true" />
-          <div className="absolute -right-8 -top-12 size-48 rounded-full border border-emerald-300/10" aria-hidden="true" />
-          <div className="relative grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-            <div className="max-w-2xl">
-              <span className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-300"><ShieldCheck className="size-5" /> Xây dựng cho sự minh bạch</span>
-              <h2 className="mt-4 text-3xl font-bold leading-tight md:text-4xl">Thông tin rõ trước khi bạn rời trang để mua hàng.</h2>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-300 md:text-base">Chúng tôi tách mức hoàn, điều kiện và thời điểm cập nhật để bạn hiểu ưu đãi áp dụng trong trường hợp nào. cashback.id.vn không trực tiếp xử lý thanh toán.</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-12 rounded-full bg-emerald-400 px-6 text-emerald-950 hover:bg-emerald-300"><Link to="/how-it-works">Cách hoạt động</Link></Button>
-              <Button asChild size="lg" variant="outline" className="h-12 rounded-full border-white/20 bg-white/5 px-6 text-white hover:bg-white/10 hover:text-white"><a href="mailto:admin@cashback.id.vn">Liên hệ đội ngũ</a></Button>
-            </div>
+      </section>
+      <section className="container-page py-9 md:py-12">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Ưu đãi từ nguồn đã kết nối</p>
+            <h2 className="mt-2 text-2xl font-semibold md:text-3xl">
+              Voucher Shopee mới cập nhật
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Kiểm tra điều kiện, rồi mở mã trực tiếp trên Shopee.
+            </p>
           </div>
+          <Link to="/shopee-vouchers" className="quiet-link">
+            Xem danh sách
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+        <LatestVouchers />
+      </section>
+      <section className="container-page py-9 md:py-12">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Bắt đầu từ nơi bạn thường mua</p>
+            <h2 className="mt-2 text-2xl font-semibold md:text-3xl">
+              Khám phá cửa hàng
+            </h2>
+          </div>
+          <Link to="/stores" className="quiet-link">
+            Xem thư mục
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {merchants
+            .filter((m) =>
+              ["shopee", "lazada", "agoda", "nike"].includes(m.slug),
+            )
+            .map((store) => (
+              <StoreCard key={store.slug} store={store} />
+            ))}
+        </div>
+        <p className="mt-4 text-xs leading-6 text-muted-foreground">
+          Thương hiệu trong thư mục không đồng nghĩa với quan hệ đối tác hoặc
+          chương trình cashback đang có hiệu lực.
+        </p>
+      </section>
+      <section className="mt-8 border-y border-border bg-white">
+        <div className="container-page grid gap-10 py-12 md:py-16 lg:grid-cols-[.8fr_1.2fr]">
+          <div>
+            <p className="eyebrow">Mua sắm có thông tin</p>
+            <h2 className="mt-3 text-3xl font-semibold leading-tight md:text-4xl">
+              Tiết kiệm bắt đầu trước lúc thanh toán.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground">
+              Cashback đang xây dựng một hành trình khám phá ưu đãi rõ ràng hơn
+              cho người mua online tại Việt Nam.
+            </p>
+            <Link to="/about" className="quiet-link mt-5">
+              Tìm hiểu về sản phẩm
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+          <div className="grid gap-5">
+            {[
+              {
+                n: "01",
+                icon: Search,
+                title: "Tìm thứ bạn cần",
+                description:
+                  "Nhập tên sản phẩm hoặc cửa hàng để khám phá kết quả trên các nền tảng.",
+              },
+              {
+                n: "02",
+                icon: ShieldCheck,
+                title: "Đọc điều kiện ưu đãi",
+                description:
+                  "Phân biệt giảm giá ngay và tiền hoàn sau mua. Kiểm tra hạn dùng, đơn tối thiểu và đơn vị cung cấp.",
+              },
+              {
+                n: "03",
+                icon: MousePointer2,
+                title: "Tiếp tục tại nơi bán",
+                description:
+                  "Giá, thanh toán và điều kiện cuối cùng được xác nhận ở website hoặc ứng dụng của cửa hàng.",
+              },
+            ].map((step) => (
+              <div
+                key={step.n}
+                className="flex gap-5 border-b border-border pb-5 last:border-0"
+              >
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {step.n}
+                </span>
+                <div className="flex-1">
+                  <h3 className="flex items-center gap-2 text-base font-semibold">
+                    <step.icon className="size-4 text-primary" />
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="container-page grid gap-4 py-12 md:grid-cols-2">
+        {[
+          {
+            icon: Scale,
+            title: "So sánh theo chi phí của bạn",
+            text: "Nhập giá, mã giảm giá và tỷ lệ đã xác nhận để ước tính các lựa chọn. Không tự động giả định ưu đãi.",
+            to: "/compare",
+            cta: "Mở bảng so sánh",
+          },
+          {
+            icon: Link2,
+            title: "Đã có đường dẫn Shopee?",
+            text: "Công cụ đổi link được giữ riêng cho nhu cầu chuyển đổi và chia sẻ đường dẫn sản phẩm.",
+            to: "/tools",
+            cta: "Mở công cụ đổi link",
+          },
+        ].map((item) => (
+          <div key={item.to} className="panel p-6 md:p-7">
+            <item.icon className="size-6 text-primary" />
+            <h2 className="mt-5 text-xl font-semibold">{item.title}</h2>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              {item.text}
+            </p>
+            <Link to={item.to} className="quiet-link mt-5">
+              {item.cta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        ))}
+      </section>
+      <section
+        id="faq"
+        className="container-page grid gap-8 py-9 md:py-12 lg:grid-cols-[.7fr_1.3fr]"
+      >
+        <div>
+          <p className="eyebrow">Rõ ràng trước khi bắt đầu</p>
+          <h2 className="mt-3 text-3xl font-semibold">
+            Bạn hỏi, Cashback trả lời.
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-muted-foreground">
+            Thông tin về ưu đãi, điều kiện và phạm vi sản phẩm hiện tại.
+          </p>
+          <Link to="/contact" className="quiet-link mt-5">
+            Cần thêm trợ giúp?
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+        <FAQ />
+      </section>
+      <section className="container-page py-9">
+        <div className="flex flex-col items-start justify-between gap-6 rounded-2xl bg-[#e8eedf] p-7 md:flex-row md:items-center md:p-9">
+          <div className="max-w-xl">
+            <p className="eyebrow">Dành cho doanh nghiệp & đối tác</p>
+            <h2 className="mt-3 text-2xl font-semibold">
+              Cùng làm ưu đãi dễ tìm, dễ hiểu hơn.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Bạn có nguồn ưu đãi, chương trình affiliate hoặc ý tưởng hợp tác?
+              Kết nối với đội ngũ đang xây dựng Cashback.
+            </p>
+          </div>
+          <Button asChild size="lg" className="shrink-0">
+            <Link to="/contact">
+              Trao đổi hợp tác
+              <ArrowUpRight />
+            </Link>
+          </Button>
         </div>
       </section>
     </SiteLayout>

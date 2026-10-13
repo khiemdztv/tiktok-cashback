@@ -7,7 +7,7 @@ import {
   type AIAnalysisResponse,
   YouApiError,
 } from "@/lib/you-api";
-import { platformDomains } from "@/src/data/mock";
+import { platformDomains } from "@/src/data/catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "Dữ liệu gửi lên không hợp lệ.", code: "INVALID_JSON" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Dữ liệu gửi lên không hợp lệ.", code: "INVALID_JSON" },
+      { status: 400 },
+    );
   }
 
   const query = normalizedQuery((payload as { query?: unknown })?.query);
@@ -51,12 +54,18 @@ export async function POST(request: NextRequest) {
   const headers = rateLimitHeaders(rateLimit);
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Bạn đã dùng hết lượt phân tích trong 24 giờ. Vui lòng thử lại sau.", code: "RATE_LIMITED" },
+      {
+        error:
+          "Bạn đã dùng hết lượt phân tích trong 24 giờ. Vui lòng thử lại sau.",
+        code: "RATE_LIMITED",
+      },
       {
         status: 429,
         headers: {
           ...headers,
-          "Retry-After": String(Math.max(Math.ceil((rateLimit.resetAt - Date.now()) / 1000), 1)),
+          "Retry-After": String(
+            Math.max(Math.ceil((rateLimit.resetAt - Date.now()) / 1000), 1),
+          ),
         },
       },
     );
@@ -75,13 +84,16 @@ export async function POST(request: NextRequest) {
       if (!url || seen.has(url)) return [];
       try {
         const parsed = new URL(url);
-        if (!['http:', 'https:'].includes(parsed.protocol)) return [];
+        if (!["http:", "https:"].includes(parsed.protocol)) return [];
         seen.add(url);
-        return [{
-          url,
-          title: resultTitles.get(url) || parsed.hostname.replace(/^www\./, ""),
-          excerpt: citation.excerpts?.[0]?.slice(0, 240),
-        }];
+        return [
+          {
+            url,
+            title:
+              resultTitles.get(url) || parsed.hostname.replace(/^www\./, ""),
+            excerpt: citation.excerpts?.[0]?.slice(0, 240),
+          },
+        ];
       } catch {
         return [];
       }
@@ -97,10 +109,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { headers });
   } catch (error) {
     if (error instanceof YouApiError) {
-      const status = [401, 402, 403, 503].includes(error.status) ? 503 : error.status === 504 ? 504 : 502;
+      const status = [401, 402, 403, 503].includes(error.status)
+        ? 503
+        : error.status === 504
+          ? 504
+          : 502;
       return NextResponse.json(
         {
-          error: status === 503 ? "Dịch vụ AI chưa sẵn sàng. Vui lòng thử lại sau." : error.message,
+          error:
+            status === 503
+              ? "Dịch vụ AI chưa sẵn sàng. Vui lòng thử lại sau."
+              : error.message,
           code: "UPSTREAM_ERROR",
         },
         { status },
@@ -108,7 +127,10 @@ export async function POST(request: NextRequest) {
     }
     console.error("ai-analyze failed", error);
     return NextResponse.json(
-      { error: "Không thể hoàn tất phân tích lúc này.", code: "ANALYSIS_FAILED" },
+      {
+        error: "Không thể hoàn tất phân tích lúc này.",
+        code: "ANALYSIS_FAILED",
+      },
       { status: 500 },
     );
   }

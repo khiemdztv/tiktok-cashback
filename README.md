@@ -1,39 +1,66 @@
-# cashback.id.vn
+# Cashback · cashback.id.vn
 
-## Cài đặt và chạy
+An early-stage Vietnamese shopping discovery product. Find products, explore
+connected Shopee vouchers and compare user-entered purchase costs. Official
+contact: [admin@cashback.id.vn](mailto:admin@cashback.id.vn).
 
-```bash
+## Local development
+
+```sh
 npm install
 npm run dev
 ```
 
-Mở http://localhost:3000 để xem giao diện cashback.id.vn được chuyển từ mẫu thiết kế vào dự án Next.js hiện tại.
+Configure local environment variables using `.env.example`. Never commit real
+environment files or credentials. The app uses Next.js 14, React, TypeScript,
+Tailwind, Radix, Lucide and Prisma/PostgreSQL.
 
-Các trang của mẫu được giữ lại: trang chủ, cashback, voucher, danh sách/chi tiết cửa hàng, so sánh giá, tìm kiếm, cách hoạt động, giới thiệu, điều khoản và bảo mật.
+## Checks and production
 
-Tab **Công cụ** tại `/tools` chứa chức năng đổi link Shopee cũ. Chỉ nhập link sản phẩm, lấy link mới, sao chép hoặc mở link. Không đăng nhập, không nhập số điện thoại, ví hay ngân hàng. API đổi link không tạo đơn và không gửi thông báo Telegram. Endpoint tra cứu đơn công khai đã ngừng hoạt động (HTTP 410); dữ liệu và trang quản trị cũ vẫn được giữ lại.
-
-Footer giữ `© 2026 cashback.id.vn - Powered by khiemdztv` cùng Facebook/Zalo và hai nút liên hệ nổi. Icon danh mục dùng Lucide; logo sàn được lưu nội bộ. Chuyển động hỗ trợ cài đặt giảm hiệu ứng của thiết bị.
-
-## Dữ liệu và cấu hình
-
-- `src/data/mock.ts` chứa dữ liệu mẫu. Cashback, voucher, cửa hàng và bảng so sánh hiện chưa kết nối nguồn dữ liệu trực tiếp. Giao diện có ghi chú dữ liệu tham khảo.
-- Đổi link tiếp tục dùng `lib/shpee-cc.ts` và `SHOPEE_AFFILIATE_ID` từ cấu hình môi trường hiện có. Kết quả phụ thuộc dịch vụ `short.shpee.cc`.
-- Không đưa `.env`, `.env.local`, database hoặc khóa API lên kho mã công khai.
-
-## Kiểm tra bản production
-
-```bash
+```sh
+npm test
+npm run typecheck
 npm run build
 npm start
 ```
 
-## Cấu trúc
+There is no separate configured ESLint command. The Next.js build performs its
+available validation and TypeScript checks.
 
-- `app/` — Các route Next.js, metadata, API và CSS toàn cục.
-- `src/routes/` — Toàn bộ giao diện trang được chuyển từ mẫu.
-- `src/components/` — Layout, thẻ cashback/voucher, icon, tìm kiếm và công cụ đổi link.
-- `src/lib/navigation.tsx` — Điều hướng của mẫu tích hợp với Next.js.
-- `app/api/generate-link/route.ts` — Chuyển link, chỉ nhận `productUrl`.
-- `public/brands/` — Logo SVG lưu nội bộ.
-- `app/admin/`, `prisma/`, `lib/db.ts` — Quản trị và dữ liệu cũ.
+Vercel uses `vercel-build` for Prisma generation, migration deployment and the
+Next.js build. `vercel.json` retains the voucher sync schedule.
+
+## Integrations
+
+- `DATABASE_URL`: PostgreSQL for stored vouchers, links and retained legacy
+  records.
+- `YOU_API_KEY` (or `YDC_API_KEY`): product search and optional AI analysis.
+  `SEARCH_RATE_LIMIT_PER_DAY` controls the request limit.
+- `SHOPEE_AFFILIATE_ID`: Shopee link conversion through the existing provider.
+- `ACCESSTRADE_API_KEY`: connected voucher data. Existing scraper fallback is
+  retained; optional browser settings are documented in `.env.example`.
+- `CRON_SECRET`: authenticates the scheduled voucher sync.
+- Legacy administrative and Telegram settings remain server-side; no public
+  consumer registration or payment settings are introduced by this redesign.
+
+An unavailable integration shows a genuine error or empty state. Product
+search does not deduct unverified cashback or sample voucher values from prices.
+`src/data/catalog.ts` contains public merchant identities, shopping categories
+and help content. The retained `mock.ts` and old sample card modules are not
+used by public routes or search calculations.
+
+## Product scope
+
+- Home, product search, merchant directory/details and connected voucher views.
+- Manual comparison of two to four options with optional confirmed rebates.
+- A secondary `/tools` page for Shopee link conversion, copy and open actions.
+- About, help/FAQ, contact, privacy, terms and unavailable-page handling.
+- The public phone-based order lookup stays retired (HTTP 410). Retained legacy
+  administration and data models are not presented as a consumer wallet.
+
+There are no live verified cashback rates, public account balances or payout
+promises. Merchant inclusion does not imply an official partnership. Opening
+a merchant or affiliate link does not guarantee a shopper cashback payment.
+
+See [the product audit and implementation review](docs/PRODUCT-REVIEW.md) for
+design decisions, data limitations and validation scope.

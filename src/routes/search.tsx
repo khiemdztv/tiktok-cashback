@@ -1,182 +1,230 @@
 "use client";
-
-import { Link } from "@/src/lib/navigation";
-import { AlertCircle, Clock3, SearchX, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-
-import { ProductResultCard } from "@/src/components/cards/ProductResultCard";
-import { VoucherCard } from "@/src/components/cards/VoucherCard";
+import { AlertCircle, RefreshCw, Search, SearchX } from "lucide-react";
 import { SiteLayout } from "@/src/components/layout/SiteLayout";
-import { AIAnalysis } from "@/src/components/search/AIAnalysis";
-import { ComparisonTable } from "@/src/components/search/ComparisonTable";
 import { SearchBox } from "@/src/components/search/SearchBox";
-import { Badge } from "@/src/components/ui/badge";
-import { Skeleton } from "@/src/components/ui/skeleton";
-import { cashbackOffers, popularSearches, storeBySlug, stores, vouchers } from "@/src/data/mock";
-import { formatPercent } from "@/src/lib/format";
+import { ProductResultCard } from "@/src/components/cards/ProductResultCard";
+import { ComparisonTable } from "@/src/components/search/ComparisonTable";
+import { AIAnalysis } from "@/src/components/search/AIAnalysis";
+import { Button } from "@/src/components/ui/button";
+import { Link } from "@/src/lib/navigation";
 import type { SmartSearchResponse } from "@/lib/you-api";
-
-type SearchError = { message: string; code?: string };
-
-function ResultsSkeleton() {
-  return (
-    <div className="space-y-10" aria-label="Đang tìm kiếm">
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {[0, 1, 2, 3, 4, 5].map((item) => (
-          <div key={item} className="overflow-hidden rounded-2xl border border-border bg-card">
-            <Skeleton className="aspect-[16/10] w-full rounded-none" />
-            <div className="space-y-3 p-5">
-              <Skeleton className="h-9 w-28" /><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-3/4" /><Skeleton className="h-20 w-full rounded-xl" /><Skeleton className="h-10 w-full rounded-xl" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SearchSuggestions() {
-  return (
-    <div className="mx-auto max-w-xl rounded-3xl border border-border bg-card p-8 text-center shadow-soft md:p-10">
-      <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground"><Sparkles className="size-6" /></span>
-      <h2 className="mt-4 text-xl font-bold">Bạn muốn so sánh sản phẩm nào?</h2>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">Nhập tên sản phẩm, dịch vụ hoặc điểm đến để tìm giá trên nhiều nền tảng.</p>
-      <div className="mt-5 flex flex-wrap justify-center gap-2">
-        {popularSearches.slice(0, 6).map((suggestion) => (
-          <Link key={suggestion} to="/search" search={{ q: suggestion }} className="rounded-full border border-border px-3.5 py-1.5 text-sm hover:border-primary/40 hover:bg-accent">{suggestion}</Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function SearchPage() {
   const q = useSearchParams().get("q")?.trim() ?? "";
   const [data, setData] = useState<SmartSearchResponse | null>(null);
   const [loading, setLoading] = useState(Boolean(q));
-  const [error, setError] = useState<SearchError | null>(null);
-
+  const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  const [platform, setPlatform] = useState("");
+  const [sort, setSort] = useState("price");
   useEffect(() => {
+    setPlatform("");
     if (!q) {
       setData(null);
-      setError(null);
+      setError("");
       setLoading(false);
       return;
     }
-
     const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 45000);
     setLoading(true);
-    setError(null);
+    setError("");
     setData(null);
-
-    void fetch("/api/smart-search", {
+    fetch("/api/smart-search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: q }),
       signal: controller.signal,
     })
       .then(async (response) => {
-        const payload = (await response.json()) as SmartSearchResponse & { error?: string; code?: string };
-        if (!response.ok) throw { message: payload.error || "Không thể tìm kiếm lúc này.", code: payload.code };
+        const payload = await response.json();
+        if (!response.ok)
+          throw new Error(payload.error || "Không thể tìm kiếm lúc này.");
         setData(payload);
       })
-      .catch((caught: unknown) => {
-        if (controller.signal.aborted) return;
-        if (caught && typeof caught === "object" && "message" in caught) {
-          setError({ message: String(caught.message), code: "code" in caught ? String(caught.code) : undefined });
-        } else {
-          setError({ message: "Không thể kết nối tới dịch vụ tìm kiếm." });
-        }
+      .catch((reason) => {
+        if (!controller.signal.aborted || timedOut)
+          setError(
+            timedOut
+              ? "Tìm kiếm mất nhiều thời gian hơn dự kiến. Bạn có thể thử lại."
+              : reason instanceof Error
+                ? reason.message
+                : "Chưa thể kết nối tới dịch vụ tìm kiếm.",
+          );
       })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
-
-    return () => controller.abort();
-  }, [q]);
-
-  const relatedSlugs = useMemo(() => {
-    const slugs = new Set(data?.results.map((result) => result.platform) ?? []);
-    const normalized = q.toLocaleLowerCase("vi");
-    stores.forEach((store) => {
-      if (normalized.includes(store.name.toLocaleLowerCase("vi"))) slugs.add(store.slug);
-    });
-    return slugs;
-  }, [data, q]);
-
-  const relatedOffers = cashbackOffers.filter((offer) => relatedSlugs.has(offer.storeSlug)).slice(0, 4);
-  const relatedVouchers = vouchers.filter((voucher) => relatedSlugs.has(voucher.storeSlug)).slice(0, 4);
-  const bestId = data?.results.find((result) => result.effectivePrice !== null)?.id;
-
+      .finally(() => {
+        clearTimeout(timer);
+        if (!controller.signal.aborted || timedOut) setLoading(false);
+      });
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [q, attempt]);
+  const results = useMemo(() => {
+    const rows = (data?.results ?? []).filter(
+      (item) => !platform || item.platform === platform,
+    );
+    return sort === "price"
+      ? [...rows].sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity))
+      : rows;
+  }, [data, platform, sort]);
+  const platforms = Array.from(
+    new Map(
+      data?.results.map((item) => [item.platform, item.platformName]) ?? [],
+    ),
+  );
+  const best = results.find((item) => item.price !== null)?.id;
   return (
     <SiteLayout>
-      <h1 className="sr-only">Tìm kiếm giá, voucher và cashback{q ? ` cho ${q}` : ""}</h1>
-      <div className="border-b border-border bg-surface/50">
+      <section className="border-b border-border bg-surface">
         <div className="container-page py-8">
-          <SearchBox defaultValue={q} size="md" showPaste={false} className="max-w-3xl" />
-          {q && (
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span>Kết quả real-time cho <strong className="text-foreground">“{q}”</strong></span>
-              {data?.cached && <Badge variant="secondary" className="rounded-full">Đã lưu cache</Badge>}
-            </div>
+          <p className="eyebrow mb-3">Tìm kiếm sản phẩm & cửa hàng</p>
+          <h1 className="mb-5 text-2xl font-semibold">
+            {q ? `Kết quả cho “${q}”` : "Bạn muốn tìm gì hôm nay?"}
+          </h1>
+          <SearchBox
+            defaultValue={q}
+            size="md"
+            showPaste={false}
+            className="max-w-3xl"
+          />
+          {data && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Tìm lúc{" "}
+              {new Date(data.searchedAt).toLocaleString("vi-VN", {
+                timeZone: "Asia/Ho_Chi_Minh",
+              })}
+              {data.cached ? " · Kết quả đã lưu" : ""}. Giá có thể thay đổi.
+            </p>
           )}
         </div>
-      </div>
-
-      <div className="container-page py-10">
+      </section>
+      <div className="container-page py-9">
         {!q ? (
-          <SearchSuggestions />
-        ) : loading ? (
-          <ResultsSkeleton />
-        ) : error ? (
-          <div className="mx-auto max-w-xl rounded-3xl border border-border bg-card p-9 text-center shadow-soft">
-            {error.code === "RATE_LIMITED" ? <Clock3 className="mx-auto size-10 text-primary" /> : <AlertCircle className="mx-auto size-10 text-destructive" />}
-            <h2 className="mt-4 text-xl font-bold">{error.code === "RATE_LIMITED" ? "Đã hết lượt tìm kiếm hôm nay" : "Tìm kiếm chưa thành công"}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{error.message}</p>
-          </div>
-        ) : !data?.results.length ? (
-          <div className="mx-auto max-w-xl rounded-3xl border border-border bg-card p-9 text-center shadow-soft">
-            <SearchX className="mx-auto size-10 text-muted-foreground" />
-            <h2 className="mt-4 text-xl font-bold">Chưa tìm thấy kết quả phù hợp</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Thử mô tả cụ thể hơn, gồm tên sản phẩm, phiên bản hoặc địa điểm.</p>
+          <div className="panel mx-auto max-w-xl p-8 text-center">
+            <Search className="mx-auto size-8 text-primary" />
+            <h2 className="mt-4 text-xl font-semibold">
+              Bắt đầu bằng một tên cụ thể.
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              Thử tên sản phẩm kèm phiên bản, thương hiệu hoặc địa điểm để kết
+              quả phù hợp hơn.
+            </p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {popularSearches.slice(0, 5).map((suggestion) => <Link key={suggestion} to="/search" search={{ q: suggestion }} className="rounded-full border border-border px-3.5 py-1.5 text-sm hover:bg-accent">{suggestion}</Link>)}
+              {["iPhone 15", "Nike Air Force 1", "Khách sạn Đà Nẵng"].map(
+                (value) => (
+                  <Link
+                    key={value}
+                    to="/search"
+                    search={{ q: value }}
+                    className="filter-chip"
+                  >
+                    {value}
+                  </Link>
+                ),
+              )}
             </div>
           </div>
+        ) : loading ? (
+          <div aria-busy="true" role="status">
+            <p className="mb-5 text-sm text-muted-foreground">
+              Đang tìm các nguồn liên quan…
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div
+                  key={index}
+                  className="panel h-80 animate-pulse bg-muted"
+                />
+              ))}
+            </div>
+          </div>
+        ) : error ? (
+          <div role="alert" className="panel mx-auto max-w-xl p-8 text-center">
+            <AlertCircle className="mx-auto size-8 text-primary" />
+            <h2 className="mt-4 text-xl font-semibold">
+              Tìm kiếm chưa sẵn sàng
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              {error}
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
+              <Button onClick={() => setAttempt((value) => value + 1)}>
+                <RefreshCw />
+                Thử lại
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/stores">Khám phá cửa hàng</Link>
+              </Button>
+            </div>
+          </div>
+        ) : !data?.results.length ? (
+          <div className="panel p-10 text-center">
+            <SearchX className="mx-auto size-8 text-muted-foreground" />
+            <h2 className="mt-4 text-xl font-semibold">
+              Chưa tìm thấy kết quả phù hợp
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Thử tên sản phẩm, phiên bản hoặc cửa hàng cụ thể hơn.
+            </p>
+          </div>
         ) : (
-          <div className="space-y-12">
-            <section>
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                <div><h2 className="text-xl font-bold md:text-2xl">Kết quả từ các nền tảng</h2><p className="mt-1 text-sm text-muted-foreground">{data.results.length} kết quả · sắp xếp theo giá hiệu dụng ước tính</p></div>
-                <p className="text-xs text-muted-foreground">Giá có thể thay đổi khi mở trang bán</p>
+          <div className="space-y-9">
+            <div>
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+                <p role="status" className="text-sm text-muted-foreground">
+                  {results.length} kết quả · giá chưa gồm ưu đãi
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <select
+                    aria-label="Lọc nền tảng"
+                    value={platform}
+                    onChange={(e) => setPlatform(e.target.value)}
+                    className="h-10 rounded-xl border border-input bg-white px-3 text-sm"
+                  >
+                    <option value="">Tất cả nền tảng</option>
+                    {platforms.map(([id, name]) => (
+                      <option key={id} value={id}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    aria-label="Sắp xếp kết quả"
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value)}
+                    className="h-10 rounded-xl border border-input bg-white px-3 text-sm"
+                  >
+                    <option value="price">Giá thấp trước</option>
+                    <option value="source">Thứ tự nguồn</option>
+                  </select>
+                </div>
               </div>
-              <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {data.results.map((result) => <ProductResultCard key={result.id} result={result} best={result.id === bestId} />)}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {results.map((result) => (
+                  <ProductResultCard
+                    key={result.id}
+                    result={result}
+                    best={sort === "price" && result.id === best}
+                  />
+                ))}
               </div>
-            </section>
-
+            </div>
             <section>
-              <h2 className="text-xl font-bold md:text-2xl">Bảng so sánh giá</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Voucher và cashback là mức ước tính từ dữ liệu nội bộ; hãy kiểm tra điều kiện trước khi mua.</p>
-              <div className="mt-5"><ComparisonTable results={data.results} /></div>
+              <h2 className="text-xl font-semibold">Đối chiếu giá tìm được</h2>
+              <p className="mb-5 mt-2 text-sm leading-7 text-muted-foreground">
+                Kết quả có thể khác phiên bản hoặc điều kiện bán. Không trừ
+                voucher và cashback khi chưa có xác nhận áp dụng cho sản phẩm.
+              </p>
+              <ComparisonTable results={results} />
             </section>
-
-            <section><h2 className="sr-only">Phân tích AI</h2><AIAnalysis query={q} /></section>
-
-            {(relatedOffers.length > 0 || relatedVouchers.length > 0) && (
-              <section>
-                <h2 className="text-xl font-bold md:text-2xl">Voucher & cashback liên quan</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Ưu đãi nội bộ cho các nền tảng xuất hiện trong kết quả.</p>
-                {relatedOffers.length > 0 && (
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {relatedOffers.map((offer) => {
-                      const store = storeBySlug(offer.storeSlug);
-                      return <div key={offer.id} className="rounded-2xl border border-border bg-card p-5 shadow-soft"><div className="flex items-center justify-between gap-2"><strong>{store?.name}</strong><Badge variant="secondary" className="rounded-full">{offer.provider}</Badge></div><p className="mt-3 text-2xl font-extrabold text-primary">Cashback {formatPercent(offer.rate)}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{offer.note}</p></div>;
-                    })}
-                  </div>
-                )}
-                {relatedVouchers.length > 0 && <div className="mt-4 grid gap-4 lg:grid-cols-2">{relatedVouchers.map((voucher) => <VoucherCard key={voucher.id} voucher={voucher} />)}</div>}
-              </section>
-            )}
+            <AIAnalysis query={q} />
           </div>
         )}
       </div>
